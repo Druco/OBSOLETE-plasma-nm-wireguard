@@ -1,2 +1,2 @@
-# nm-plasma-wireguard
-Addition to nm-plasma to allow the use Wireguard VPN.
+# plasma-nm-wireguard
+Addition to plasma-nm to allow the use Wireguard VPN.
