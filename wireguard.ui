@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WireguardProp</class>
+ <widget class="QWidget" name="WireguardProp">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>468</width>
+    <height>514</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>VPN (wireguard)</string>
+  </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>91</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Interface</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="formLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>451</width>
+     <height>261</height>
+    </rect>
+   </property>
+   <layout class="QFormLayout" name="formLayout">
+    <item row="0" column="0">
+     <widget class="QLabel" name="addressIPv4Label">
+      <property name="text">
+       <string>Address (IPv4):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="addressIPv4LineEdit"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="addressIPv6Label">
+      <property name="text">
+       <string>Address (IPv6):</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="addressIPv6LineEdit"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="listenPortLabel">
+      <property name="text">
+       <string>Listen Port:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="listenPortLineEdit"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="privateKeyLabel">
+      <property name="text">
+       <string>Private Key:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="PasswordField" name="privateKeyLineEdit"/>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="dNSLabel">
+      <property name="text">
+       <string>DNS:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QLineEdit" name="dNSLineEdit"/>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="mTULabel">
+      <property name="text">
+       <string>MTU:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QLineEdit" name="mTULineEdit"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>300</y>
+     <width>65</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>16</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Peer</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="formLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>330</y>
+     <width>451</width>
+     <height>168</height>
+    </rect>
+   </property>
+   <layout class="QFormLayout" name="formLayout_2">
+    <item row="0" column="0">
+     <widget class="QLabel" name="publicKeyLabel">
+      <property name="text">
+       <string>Public Key:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="publicKeyLineEdit"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="allowedIPsLabel">
+      <property name="text">
+       <string>Allowed IPs</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="allowedIPsLineEdit"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="endpointLabel">
+      <property name="text">
+       <string>Endpoint:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="endpointLineEdit"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="presharedKeyLabel">
+      <property name="text">
+       <string>Preshared Key:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="presharedKeyLineEdit"/>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PasswordField</class>
+   <extends>QLineEdit</extends>
+   <header location="global">passwordfield.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
