@@ -259,7 +259,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
             {
                 if (key_value[1].length() > 0)
                 {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_PRIVATE_KEY), key_value[1]);
+                    dataMap.insert(QLatin1String(NM_WG_KEY_ALLOWED_IPS), key_value[1]);
                     have_allowed_ips = true;
                 }
             }
@@ -268,7 +268,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
             {
                 if (key_value[1].length() > 0)
                 {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_PRIVATE_KEY), key_value[1]);
+                    dataMap.insert(QLatin1String(NM_WG_KEY_ENDPOINT), key_value[1]);
                     have_endpoint = true;
                 }
             }
