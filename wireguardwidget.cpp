@@ -53,15 +53,16 @@ WireGuardSettingWidget::WireGuardSettingWidget(const NetworkManager::VpnSetting:
 
     connect(d->ui.addressIPv4LineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isAddressValid);
     connect(d->ui.addressIPv6LineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isAddressValid);
-    connect(d->ui.listenPortLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isListenPortValid);
     connect(d->ui.privateKeyLineEdit, &PasswordField::textChanged, this, &WireGuardSettingWidget::isPrivateKeyValid);
     connect(d->ui.dNSLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isDNSValid);
-    connect(d->ui.mTULineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isMTUValid);
     connect(d->ui.publicKeyLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isPublicKeyValid);
     connect(d->ui.allowedIPsLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isAllowedIPsValid);
     connect(d->ui.endpointLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isEndpointValid);
     
     d->ui.privateKeyLineEdit->setPasswordModeEnabled(true);
+
+    connect(d->ui.btnAdvanced, &QPushButton::clicked, this, &WireGuardSettingWidget::showAdvanced);
+
 
     // Connect for setting check
     watchChangedSetting();
@@ -75,10 +76,8 @@ WireGuardSettingWidget::WireGuardSettingWidget(const NetworkManager::VpnSetting:
     else
     {
         isAddressValid();
-        isListenPortValid();
         isPrivateKeyValid();
         isDNSValid();
-        isMTUValid();
         isPublicKeyValid();
         isAllowedIPsValid();
         isEndpointValid();
@@ -98,14 +97,11 @@ void WireGuardSettingWidget::loadConfig(const NetworkManager::Setting::Ptr &sett
 
     d->ui.addressIPv4LineEdit->setText(dataMap[NM_WG_KEY_ADDR_IP4]);
     d->ui.addressIPv6LineEdit->setText(dataMap[NM_WG_KEY_ADDR_IP6]);
-    d->ui.listenPortLineEdit->setText(dataMap[NM_WG_KEY_LISTEN_PORT]);
     d->ui.privateKeyLineEdit->setText(dataMap[NM_WG_KEY_PRIVATE_KEY]);
     d->ui.dNSLineEdit->setText(dataMap[NM_WG_KEY_DNS]);
-    d->ui.mTULineEdit->setText(dataMap[NM_WG_KEY_MTU]);
     d->ui.publicKeyLineEdit->setText(dataMap[NM_WG_KEY_PUBLIC_KEY]);
     d->ui.allowedIPsLineEdit->setText(dataMap[NM_WG_KEY_ALLOWED_IPS]);
     d->ui.endpointLineEdit->setText(dataMap[NM_WG_KEY_ENDPOINT]);
-    d->ui.presharedKeyLineEdit->setText(dataMap[NM_WG_KEY_PRESHARED_KEY]);
     
 #if 0
     loadSecrets(setting);
@@ -118,17 +114,8 @@ void WireGuardSettingWidget::loadSecrets(const NetworkManager::Setting::Ptr &set
     NetworkManager::VpnSetting::Ptr vpnSetting = setting.staticCast<NetworkManager::VpnSetting>();
 
     if (vpnSetting) {
-        const QString cType = d->setting->data().value(NM_OPENVPN_KEY_CONNECTION_TYPE);
         const NMStringMap secrets = vpnSetting->secrets();
-
-        if (cType == QLatin1String(NM_OPENVPN_CONTYPE_TLS)) {
-            d->ui.x509KeyPassword->setText(secrets.value(NM_OPENVPN_KEY_CERTPASS));
-        } else if (cType == QLatin1String(NM_OPENVPN_CONTYPE_PASSWORD)) {
-            d->ui.passPassword->setText(secrets.value(NM_OPENVPN_KEY_PASSWORD));
-        } else if (cType == QLatin1String(NM_OPENVPN_CONTYPE_PASSWORD_TLS)) {
-            d->ui.x509PassPassword->setText(secrets.value(NM_OPENVPN_KEY_PASSWORD));
-            d->ui.x509PassKeyPassword->setText(secrets.value(NM_OPENVPN_KEY_CERTPASS));
-        }
+        d->ui.privateKeyLineEdit->setText(secrets[NM_WG_KEY_PRIVATE_KEY]);
     }
 #endif
 }
@@ -149,13 +136,11 @@ QVariantMap WireGuardSettingWidget::setting() const
     setOrClear(data, QLatin1String(NM_WG_KEY_PUBLIC_KEY), d->ui.publicKeyLineEdit->displayText());
     setOrClear(data, QLatin1String(NM_WG_KEY_ALLOWED_IPS), d->ui.allowedIPsLineEdit->displayText());
 
-    setOrClear(data, QLatin1String(NM_WG_KEY_LISTEN_PORT), d->ui.listenPortLineEdit->displayText());
     setOrClear(data, QLatin1String(NM_WG_KEY_DNS), d->ui.dNSLineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_MTU), d->ui.mTULineEdit->displayText());
     setOrClear(data, QLatin1String(NM_WG_KEY_ENDPOINT), d->ui.endpointLineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_PRESHARED_KEY), d->ui.presharedKeyLineEdit->displayText());
 
     setting.setData(data);
+    setting.setSecrets(secretData);
     return setting.toMap();
 }
 
@@ -171,18 +156,6 @@ void WireGuardSettingWidget::setOrClear(NMStringMap &data, QLatin1String key, QS
     }
 }    
 
-void WireGuardSettingWidget::updateStartDir(const QUrl &url)
-{
-#if 0
-    QList<KUrlRequester *> requesters;
-    requesters << d->ui.x509CaFile << d->ui.x509Cert << d->ui.x509Key << d->ui.pskSharedKey << d->ui.passCaFile << d->ui.x509PassCaFile
-               << d->ui.x509PassCert << d->ui.x509PassKey;
-    Q_FOREACH (KUrlRequester * requester, requesters) {
-        requester->setStartDir(url.adjusted(QUrl::RemoveFilename | QUrl::StripTrailingSlash));
-    }
-#endif
-}
-
 void WireGuardSettingWidget::setPasswordType(QLineEdit *edit, int type)
 {
     edit->setEnabled(type == SettingWidget::EnumPasswordStorageType::Store);
@@ -191,7 +164,7 @@ void WireGuardSettingWidget::setPasswordType(QLineEdit *edit, int type)
 void WireGuardSettingWidget::showAdvanced()
 {
     QPointer<WireGuardAdvancedWidget> adv = new WireGuardAdvancedWidget(d->setting, this);
-    adv->init();
+
     connect(adv.data(), &WireGuardAdvancedWidget::accepted,
             [adv, this] () {
                 NetworkManager::VpnSetting::Ptr advData = adv->setting();
@@ -242,24 +215,6 @@ bool WireGuardSettingWidget::isAddressValid() const
     return result;
 }
 
-bool WireGuardSettingWidget::isListenPortValid() const
-{
-    bool valid = WireGuardUtils::is_num_valid(d->ui.listenPortLineEdit->displayText(), 0,65535);
-    bool present = (0 != d->ui.listenPortLineEdit->displayText().length());
-    bool result = valid || !present;
-
-    if (!result)
-    {
-        d->ui.listenPortLineEdit->setStyleSheet("* { background-color: rgb(255,128, 128) }");
-    }
-    else
-    {
-        d->ui.listenPortLineEdit->setStyleSheet("* { background-color:  }");
-    }
-    
-    return result;
-}
-
 bool WireGuardSettingWidget::isPrivateKeyValid() const
 {
     bool present = (0 != d->ui.privateKeyLineEdit->text().length());
@@ -288,24 +243,6 @@ bool WireGuardSettingWidget::isDNSValid() const
     else
     {
         d->ui.dNSLineEdit->setStyleSheet("* { background-color:  }");
-    }
-    
-    return result;
-}
-
-bool WireGuardSettingWidget::isMTUValid() const
-{
-    bool valid = WireGuardUtils::is_num_valid(d->ui.mTULineEdit->displayText());
-    bool present = (0 != d->ui.mTULineEdit->displayText().length());
-    bool result = valid || !present;
-
-    if (!result)
-    {
-        d->ui.mTULineEdit->setStyleSheet("* { background-color: rgb(255,128, 128) }");
-    }
-    else
-    {
-        d->ui.mTULineEdit->setStyleSheet("* { background-color:  }");
     }
     
     return result;

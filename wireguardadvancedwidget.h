@@ -49,26 +49,19 @@ class WireGuardAdvancedWidget : public QDialog
 public:
     explicit WireGuardAdvancedWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
     ~WireGuardAdvancedWidget();
-    void init();
 
     NetworkManager::VpnSetting::Ptr setting() const;
 
 private Q_SLOTS:
-    void gotWireGuardCipherOutput();
-    void wireguardCipherError(QProcess::ProcessError);
-    void wireguardCipherFinished(int, QProcess::ExitStatus);
-    void gotWireGuardVersionOutput();
-    void wireguardVersionError(QProcess::ProcessError);
-    void wireguardVersionFinished(int, QProcess::ExitStatus);
-    void certCheckTypeChanged(int);
-    void proxyTypeChanged(int);
 
 private:
-    int compareVersion(const int x, const int y, const int z) const;
-    void disableLegacySubjectMatch();
     void loadConfig();
-    void fillOnePasswordCombo(PasswordField *passwordField, NetworkManager::Setting::SecretFlags type);
-    void handleOnePasswordType(const PasswordField *passwordField, const QString &key, NMStringMap &data) const;
+    bool isListenPortValid() const;
+    bool isMTUValid() const;
+    bool isTableValid() const;
+    bool isFwMarkValid() const;
+    bool isPresharedKeyValid() const;
+    void setOrClear(NMStringMap &data, QLatin1String key, QString value) const;
     Ui::WireGuardAdvancedWidget *m_ui;
     class Private;
     Private *const d;

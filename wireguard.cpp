@@ -338,26 +338,6 @@ QString WireGuardUiPlugin::saveFile(QTextStream &in, const QString &endTag, cons
     return absoluteFilePath;
 }
 
-QString WireGuardUiPlugin::tryToCopyToCertificatesDirectory(const QString &connectionName, const QString &sourceFilePath)
-{
-#if 0
-    const QString certificatesDirectory = KStandardDirs::locateLocal("data", "networkmanagement/certificates/");
-    const QString absoluteFilePath = certificatesDirectory + connectionName + '_' + QFileInfo(sourceFilePath).fileName();
-
-    QFile sourceFile(sourceFilePath);
-
-    QDir().mkpath(certificatesDirectory);
-    if (!sourceFile.copy(absoluteFilePath)) {
-        KMessageBox::information(0, i18n("Error copying certificate to %1: %2", absoluteFilePath, sourceFile.errorString()));
-        return sourceFilePath;
-    }
-
-    return absoluteFilePath;
-#endif
-const QString result = "";
-return result;
-}
-
 bool WireGuardUiPlugin::exportConnectionSettings(const NetworkManager::ConnectionSettings::Ptr &connection, const QString &fileName)
 {
 #if 0
