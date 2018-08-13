@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>WireguardAdvancedWidget</class>
- <widget class="QWidget" name="WireguardAdvancedWidget">
+ <class>WireGuardAdvancedWidget</class>
+ <widget class="QWidget" name="WireGuardAdvancedWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -398,13 +398,13 @@ balancing measure.</string>
          <property name="toolTip">
           <string>Allow remote peer to change its IP address and/or port number such as due to
 DHCP (this is the default if --remote is not used). --float when specified with --remote
-allows an Wireguard session to initially connect to a peer at a known address,
+allows an WireGuard session to initially connect to a peer at a known address,
 however if packets arrive from a new address and pass all authentication tests, the
 new address will take control of the session. This is useful when you are connecting
 to a peer which holds a dynamic address such as a dial-in user or DHCP client.
 
 
-Essentially, --float tells Wireguard to accept authenticated packets from any address,
+Essentially, --float tells WireGuard to accept authenticated packets from any address,
 not only the address which was specified in the --remote option.</string>
          </property>
          <property name="text">
@@ -1097,7 +1097,7 @@ to protect against DoS attacks.</string>
        <item row="8" column="0">
         <widget class="QLabel" name="label_14">
          <property name="toolTip">
-          <string>HTTP/SOCKS proxy username passed to Wireguard when prompted for it.</string>
+          <string>HTTP/SOCKS proxy username passed to WireGuard when prompted for it.</string>
          </property>
          <property name="text">
           <string>Proxy Username:</string>
@@ -1110,7 +1110,7 @@ to protect against DoS attacks.</string>
        <item row="8" column="1">
         <widget class="PasswordField" name="proxyUsername">
          <property name="toolTip">
-          <string>HTTP/SOCKS proxy username passed to Wireguard when prompted for it.</string>
+          <string>HTTP/SOCKS proxy username passed to WireGuard when prompted for it.</string>
          </property>
          <property name="passwordModeEnabled" stdset="0">
           <bool>true</bool>
@@ -1120,7 +1120,7 @@ to protect against DoS attacks.</string>
        <item row="9" column="0">
         <widget class="QLabel" name="label_15">
          <property name="toolTip">
-          <string>HTTP/SOCKS proxy password passed to Wireguard when prompted for it.</string>
+          <string>HTTP/SOCKS proxy password passed to WireGuard when prompted for it.</string>
          </property>
          <property name="text">
           <string>Proxy Password:</string>
@@ -1135,7 +1135,7 @@ to protect against DoS attacks.</string>
          <item>
           <widget class="PasswordField" name="proxyPassword">
            <property name="toolTip">
-            <string>HTTP/SOCKS proxy password passed to Wireguard when prompted for it.</string>
+            <string>HTTP/SOCKS proxy password passed to WireGuard when prompted for it.</string>
            </property>
            <property name="passwordModeEnabled" stdset="0">
             <bool>true</bool>

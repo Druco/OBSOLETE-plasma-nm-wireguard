@@ -30,11 +30,11 @@
 
 namespace Ui
 {
-class WireguardAdvancedWidget;
+class WireGuardAdvancedWidget;
 }
 
 class QLineEdit;
-class WireguardAdvancedWidget : public QDialog
+class WireGuardAdvancedWidget : public QDialog
 {
     Q_OBJECT
 
@@ -47,17 +47,17 @@ class WireguardAdvancedWidget : public QDialog
     };
 
 public:
-    explicit WireguardAdvancedWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
-    ~WireguardAdvancedWidget();
+    explicit WireGuardAdvancedWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
+    ~WireGuardAdvancedWidget();
     void init();
 
     NetworkManager::VpnSetting::Ptr setting() const;
 
 private Q_SLOTS:
-    void gotWireguardCipherOutput();
+    void gotWireGuardCipherOutput();
     void wireguardCipherError(QProcess::ProcessError);
     void wireguardCipherFinished(int, QProcess::ExitStatus);
-    void gotWireguardVersionOutput();
+    void gotWireGuardVersionOutput();
     void wireguardVersionError(QProcess::ProcessError);
     void wireguardVersionFinished(int, QProcess::ExitStatus);
     void certCheckTypeChanged(int);
@@ -69,7 +69,7 @@ private:
     void loadConfig();
     void fillOnePasswordCombo(PasswordField *passwordField, NetworkManager::Setting::SecretFlags type);
     void handleOnePasswordType(const PasswordField *passwordField, const QString &key, NMStringMap &data) const;
-    Ui::WireguardAdvancedWidget *m_ui;
+    Ui::WireGuardAdvancedWidget *m_ui;
     class Private;
     Private *const d;
 };

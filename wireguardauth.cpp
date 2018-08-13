@@ -32,18 +32,18 @@
 #include "nm-wireguard-service.h"
 #include "debug.h"
 
-class WireguardAuthWidgetPrivate
+class WireGuardAuthWidgetPrivate
 {
 public:
     NetworkManager::VpnSetting::Ptr setting;
     QFormLayout *layout;
 };
 
-WireguardAuthWidget::WireguardAuthWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
+WireGuardAuthWidget::WireGuardAuthWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
     : SettingWidget(setting, parent)
-    , d_ptr(new WireguardAuthWidgetPrivate)
+    , d_ptr(new WireGuardAuthWidgetPrivate)
 {
-    Q_D(WireguardAuthWidget);
+    Q_D(WireGuardAuthWidget);
     d->setting = setting;
     d->layout = new QFormLayout(this);
     setLayout(d->layout);
@@ -53,14 +53,14 @@ WireguardAuthWidget::WireguardAuthWidget(const NetworkManager::VpnSetting::Ptr &
     KAcceleratorManager::manage(this);
 }
 
-WireguardAuthWidget::~WireguardAuthWidget()
+WireGuardAuthWidget::~WireGuardAuthWidget()
 {
     delete d_ptr;
 }
 
-void WireguardAuthWidget::readSecrets()
+void WireGuardAuthWidget::readSecrets()
 {
-    Q_D(WireguardAuthWidget);
+    Q_D(WireGuardAuthWidget);
     const NMStringMap secrets = d->setting->secrets();
     const NMStringMap dataMap = d->setting->data();
 #if 0
@@ -129,9 +129,9 @@ void WireguardAuthWidget::readSecrets()
 #endif
 }
 
-QVariantMap WireguardAuthWidget::setting() const
+QVariantMap WireGuardAuthWidget::setting() const
 {
-    Q_D(const WireguardAuthWidget);
+    Q_D(const WireGuardAuthWidget);
 
     NMStringMap secrets;
     QVariantMap secretData;

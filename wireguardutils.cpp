@@ -20,7 +20,7 @@
 
 // Checks to see if a string contains only number characters.
 // If min and max are given, will check to see if the number is in min <= number <= max
-bool WireguardUtils::is_num_valid(QString candidate, int min, int max)
+bool WireGuardUtils::is_num_valid(QString candidate, int min, int max)
 {
     if (candidate.length() == 0 ||
         candidate.indexOf(QRegExp("[^0-9]")) > -1 ||
@@ -39,7 +39,7 @@ bool WireguardUtils::is_num_valid(QString candidate, int min, int max)
 // that is, four segments of numbers (0-255), separated by dots
 // additionally, there may be a port suffix (separated from the address by a colon; 0 - 65535)
 // and/or a subnet (separated by the rest by a slash; 0 - 32)
-bool WireguardUtils::is_ip4(QString addr, bool allow_subnet, bool allow_port)
+bool WireGuardUtils::is_ip4(QString addr, bool allow_subnet, bool allow_port)
 {
 	int idx = 0;
 	QStringList parts;
@@ -119,7 +119,7 @@ bool WireguardUtils::is_ip4(QString addr, bool allow_subnet, bool allow_port)
 	return true;
 }
 
-bool WireguardUtils::is_ip6(QString addr, bool allow_subnet, bool allow_port)
+bool WireGuardUtils::is_ip6(QString addr, bool allow_subnet, bool allow_port)
 {
 	QStringList parts;
 	QStringList lastpart;

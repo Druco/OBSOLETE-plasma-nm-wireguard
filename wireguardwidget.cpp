@@ -34,15 +34,15 @@
 
 #include "nm-wireguard-service.h"
 
-class WireguardSettingWidget::Private
+class WireGuardSettingWidget::Private
 {
 public:
-    Ui_WireguardProp ui;
+    Ui_WireGuardProp ui;
     NetworkManager::VpnSetting::Ptr setting;
 };
 
 
-WireguardSettingWidget::WireguardSettingWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent)
+WireGuardSettingWidget::WireGuardSettingWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent)
     : SettingWidget(setting, parent)
     , d(new Private)
 {
@@ -51,15 +51,15 @@ WireguardSettingWidget::WireguardSettingWidget(const NetworkManager::VpnSetting:
     d->ui.setupUi(this);
     d->setting = setting;
 
-    connect(d->ui.addressIPv4LineEdit, &QLineEdit::textChanged, this, &WireguardSettingWidget::isAddressValid);
-    connect(d->ui.addressIPv6LineEdit, &QLineEdit::textChanged, this, &WireguardSettingWidget::isAddressValid);
-    connect(d->ui.listenPortLineEdit, &QLineEdit::textChanged, this, &WireguardSettingWidget::isListenPortValid);
-    connect(d->ui.privateKeyLineEdit, &PasswordField::textChanged, this, &WireguardSettingWidget::isPrivateKeyValid);
-    connect(d->ui.dNSLineEdit, &QLineEdit::textChanged, this, &WireguardSettingWidget::isDNSValid);
-    connect(d->ui.mTULineEdit, &QLineEdit::textChanged, this, &WireguardSettingWidget::isMTUValid);
-    connect(d->ui.publicKeyLineEdit, &QLineEdit::textChanged, this, &WireguardSettingWidget::isPublicKeyValid);
-    connect(d->ui.allowedIPsLineEdit, &QLineEdit::textChanged, this, &WireguardSettingWidget::isAllowedIPsValid);
-    connect(d->ui.endpointLineEdit, &QLineEdit::textChanged, this, &WireguardSettingWidget::isEndpointValid);
+    connect(d->ui.addressIPv4LineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isAddressValid);
+    connect(d->ui.addressIPv6LineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isAddressValid);
+    connect(d->ui.listenPortLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isListenPortValid);
+    connect(d->ui.privateKeyLineEdit, &PasswordField::textChanged, this, &WireGuardSettingWidget::isPrivateKeyValid);
+    connect(d->ui.dNSLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isDNSValid);
+    connect(d->ui.mTULineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isMTUValid);
+    connect(d->ui.publicKeyLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isPublicKeyValid);
+    connect(d->ui.allowedIPsLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isAllowedIPsValid);
+    connect(d->ui.endpointLineEdit, &QLineEdit::textChanged, this, &WireGuardSettingWidget::isEndpointValid);
     
     d->ui.privateKeyLineEdit->setPasswordModeEnabled(true);
 
@@ -85,12 +85,12 @@ WireguardSettingWidget::WireguardSettingWidget(const NetworkManager::VpnSetting:
     }
 }
 
-WireguardSettingWidget::~WireguardSettingWidget()
+WireGuardSettingWidget::~WireGuardSettingWidget()
 {
     delete d;
 }
 
-void WireguardSettingWidget::loadConfig(const NetworkManager::Setting::Ptr &setting)
+void WireGuardSettingWidget::loadConfig(const NetworkManager::Setting::Ptr &setting)
 {
     Q_UNUSED(setting)
     // General settings
@@ -112,7 +112,7 @@ void WireguardSettingWidget::loadConfig(const NetworkManager::Setting::Ptr &sett
 #endif
 }
 
-void WireguardSettingWidget::loadSecrets(const NetworkManager::Setting::Ptr &setting)
+void WireGuardSettingWidget::loadSecrets(const NetworkManager::Setting::Ptr &setting)
 {
 #if 0
     NetworkManager::VpnSetting::Ptr vpnSetting = setting.staticCast<NetworkManager::VpnSetting>();
@@ -133,7 +133,7 @@ void WireguardSettingWidget::loadSecrets(const NetworkManager::Setting::Ptr &set
 #endif
 }
 
-QVariantMap WireguardSettingWidget::setting() const
+QVariantMap WireGuardSettingWidget::setting() const
 {
     NMStringMap data = d->setting->data();
     NMStringMap secretData = d->setting->secrets();
@@ -159,7 +159,7 @@ QVariantMap WireguardSettingWidget::setting() const
     return setting.toMap();
 }
 
-void WireguardSettingWidget::setOrClear(NMStringMap &data, QLatin1String key, QString value) const
+void WireGuardSettingWidget::setOrClear(NMStringMap &data, QLatin1String key, QString value) const
 {
     if (0 != value.length())
     {
@@ -171,7 +171,7 @@ void WireguardSettingWidget::setOrClear(NMStringMap &data, QLatin1String key, QS
     }
 }    
 
-void WireguardSettingWidget::updateStartDir(const QUrl &url)
+void WireGuardSettingWidget::updateStartDir(const QUrl &url)
 {
 #if 0
     QList<KUrlRequester *> requesters;
@@ -183,16 +183,16 @@ void WireguardSettingWidget::updateStartDir(const QUrl &url)
 #endif
 }
 
-void WireguardSettingWidget::setPasswordType(QLineEdit *edit, int type)
+void WireGuardSettingWidget::setPasswordType(QLineEdit *edit, int type)
 {
     edit->setEnabled(type == SettingWidget::EnumPasswordStorageType::Store);
 }
 
-void WireguardSettingWidget::showAdvanced()
+void WireGuardSettingWidget::showAdvanced()
 {
-    QPointer<WireguardAdvancedWidget> adv = new WireguardAdvancedWidget(d->setting, this);
+    QPointer<WireGuardAdvancedWidget> adv = new WireGuardAdvancedWidget(d->setting, this);
     adv->init();
-    connect(adv.data(), &WireguardAdvancedWidget::accepted,
+    connect(adv.data(), &WireGuardAdvancedWidget::accepted,
             [adv, this] () {
                 NetworkManager::VpnSetting::Ptr advData = adv->setting();
                 if (!advData.isNull()) {
@@ -200,7 +200,7 @@ void WireguardSettingWidget::showAdvanced()
                     d->setting->setSecrets(advData->secrets());
                 }
             });
-    connect(adv.data(), &WireguardAdvancedWidget::finished,
+    connect(adv.data(), &WireGuardAdvancedWidget::finished,
             [adv] () {
                 if (adv) {
                     adv->deleteLater();
@@ -210,7 +210,7 @@ void WireguardSettingWidget::showAdvanced()
     adv->show();
 }
 
-bool WireguardSettingWidget::isValid() const
+bool WireGuardSettingWidget::isValid() const
 {
 #if 0
     return !d->ui.gateway->text().isEmpty();
@@ -218,11 +218,11 @@ bool WireguardSettingWidget::isValid() const
     return true;
 }
 
-bool WireguardSettingWidget::isAddressValid() const
+bool WireGuardSettingWidget::isAddressValid() const
 {
-    bool ip4valid = WireguardUtils::is_ip4(d->ui.addressIPv4LineEdit->displayText(), true, false);
+    bool ip4valid = WireGuardUtils::is_ip4(d->ui.addressIPv4LineEdit->displayText(), true, false);
     bool ip4present = (d->ui.addressIPv4LineEdit->displayText().length() != 0);
-    bool ip6valid = WireguardUtils::is_ip6(d->ui.addressIPv6LineEdit->displayText(), true, false);
+    bool ip6valid = WireGuardUtils::is_ip6(d->ui.addressIPv6LineEdit->displayText(), true, false);
     bool ip6present = (d->ui.addressIPv6LineEdit->displayText().length() != 0);
                    
     bool result = (ip4valid && ip6valid) ||
@@ -242,9 +242,9 @@ bool WireguardSettingWidget::isAddressValid() const
     return result;
 }
 
-bool WireguardSettingWidget::isListenPortValid() const
+bool WireGuardSettingWidget::isListenPortValid() const
 {
-    bool valid = WireguardUtils::is_num_valid(d->ui.listenPortLineEdit->displayText(), 0,65535);
+    bool valid = WireGuardUtils::is_num_valid(d->ui.listenPortLineEdit->displayText(), 0,65535);
     bool present = (0 != d->ui.listenPortLineEdit->displayText().length());
     bool result = valid || !present;
 
@@ -260,7 +260,7 @@ bool WireguardSettingWidget::isListenPortValid() const
     return result;
 }
 
-bool WireguardSettingWidget::isPrivateKeyValid() const
+bool WireGuardSettingWidget::isPrivateKeyValid() const
 {
     bool present = (0 != d->ui.privateKeyLineEdit->text().length());
 
@@ -275,9 +275,9 @@ bool WireguardSettingWidget::isPrivateKeyValid() const
     return present;
 }
 
-bool WireguardSettingWidget::isDNSValid() const
+bool WireGuardSettingWidget::isDNSValid() const
 {
-    bool valid = WireguardUtils::is_ip4(d->ui.dNSLineEdit->displayText(), false, false);
+    bool valid = WireGuardUtils::is_ip4(d->ui.dNSLineEdit->displayText(), false, false);
     bool present = (0 != d->ui.dNSLineEdit->displayText().length());
     bool result = valid || !present;
 
@@ -293,9 +293,9 @@ bool WireguardSettingWidget::isDNSValid() const
     return result;
 }
 
-bool WireguardSettingWidget::isMTUValid() const
+bool WireGuardSettingWidget::isMTUValid() const
 {
-    bool valid = WireguardUtils::is_num_valid(d->ui.mTULineEdit->displayText());
+    bool valid = WireGuardUtils::is_num_valid(d->ui.mTULineEdit->displayText());
     bool present = (0 != d->ui.mTULineEdit->displayText().length());
     bool result = valid || !present;
 
@@ -311,7 +311,7 @@ bool WireguardSettingWidget::isMTUValid() const
     return result;
 }
 
-bool WireguardSettingWidget::isPublicKeyValid() const
+bool WireGuardSettingWidget::isPublicKeyValid() const
 {
     bool present = (0 != d->ui.publicKeyLineEdit->text().length());
 
@@ -326,7 +326,7 @@ bool WireguardSettingWidget::isPublicKeyValid() const
     return present;
 }
 
-bool WireguardSettingWidget::isAllowedIPsValid() const
+bool WireGuardSettingWidget::isAllowedIPsValid() const
 {
     bool result = true;
     bool present = (0 != d->ui.allowedIPsLineEdit->displayText().length());
@@ -338,7 +338,7 @@ bool WireguardSettingWidget::isAllowedIPsValid() const
 
         for (int i = 0; i < addrs.size(); i++)
         {
-            if (!WireguardUtils::is_ip4(addrs[i], true, false) && !WireguardUtils::is_ip6(addrs[i], true, false))
+            if (!WireGuardUtils::is_ip4(addrs[i], true, false) && !WireGuardUtils::is_ip6(addrs[i], true, false))
             {
                 result = false;
             }
@@ -365,9 +365,9 @@ bool WireguardSettingWidget::isAllowedIPsValid() const
     return result;
 }
 
-bool WireguardSettingWidget::isEndpointValid() const
+bool WireGuardSettingWidget::isEndpointValid() const
 {
-    bool valid = WireguardUtils::is_ip4(d->ui.endpointLineEdit->displayText(), false, true);
+    bool valid = WireGuardUtils::is_ip4(d->ui.endpointLineEdit->displayText(), false, true);
     bool present = (0 != d->ui.endpointLineEdit->displayText().length());
     bool result = !present || (valid &&  d->ui.endpointLineEdit->displayText().contains(":"));
 

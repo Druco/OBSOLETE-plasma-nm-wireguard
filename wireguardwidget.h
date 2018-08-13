@@ -33,12 +33,12 @@
 class QUrl;
 class QLineEdit;
 
-class WireguardSettingWidget : public SettingWidget
+class WireGuardSettingWidget : public SettingWidget
 {
     Q_OBJECT
 public:
-    explicit WireguardSettingWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
-    ~WireguardSettingWidget();
+    explicit WireGuardSettingWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
+    ~WireGuardSettingWidget();
 
     void loadConfig(const NetworkManager::Setting::Ptr &setting) Q_DECL_OVERRIDE;
     void loadSecrets(const NetworkManager::Setting::Ptr &setting) Q_DECL_OVERRIDE;
