@@ -29,12 +29,12 @@
 #include <QVariant>
 #include <QTextStream>
 
-class Q_DECL_EXPORT WireguardUiPlugin : public VpnUiPlugin
+class Q_DECL_EXPORT WireGuardUiPlugin : public VpnUiPlugin
 {
 Q_OBJECT
 public:
-    explicit WireguardUiPlugin(QObject * parent = 0, const QVariantList& = QVariantList());
-    virtual ~WireguardUiPlugin();
+    explicit WireGuardUiPlugin(QObject * parent = 0, const QVariantList& = QVariantList());
+    virtual ~WireGuardUiPlugin();
     SettingWidget * widget(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent = 0);
     SettingWidget * askUser(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent = 0);
 

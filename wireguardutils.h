@@ -19,7 +19,7 @@
 #include <QVariant>
 #include <QString>
 
-class WireguardUtils
+class WireGuardUtils
 {
 public:
     static bool is_num_valid(QString candidate, int min=0, int max=0);

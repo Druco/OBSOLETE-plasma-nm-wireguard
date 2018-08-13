@@ -32,15 +32,15 @@
 #include <KProcess>
 #include <KAcceleratorManager>
 
-class WireguardAdvancedWidget::Private {
+class WireGuardAdvancedWidget::Private {
 public:
     NetworkManager::VpnSetting::Ptr setting;
     KProcess *wireguardCipherProcess = nullptr;
     KProcess *wireguardVersionProcess = nullptr;
     QByteArray wireguardCiphers;
     QByteArray wireguardVersion;
-    bool gotWireguardCiphers = false;
-    bool gotWireguardVersion = false;
+    bool gotWireGuardCiphers = false;
+    bool gotWireGuardVersion = false;
     bool readConfig = false;
     int versionX = 0;
     int versionY = 0;
@@ -58,22 +58,22 @@ public:
     };
 };
 
-WireguardAdvancedWidget::WireguardAdvancedWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent)
+WireGuardAdvancedWidget::WireGuardAdvancedWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent)
     : QDialog(parent)
-    , m_ui(new Ui::WireguardAdvancedWidget)
+    , m_ui(new Ui::WireGuardAdvancedWidget)
     , d(new Private)
 {
     m_ui->setupUi(this);
 
-    setWindowTitle(i18nc("@title: window advanced wireguard properties", "Advanced Wireguard properties"));
+    setWindowTitle(i18nc("@title: window advanced wireguard properties", "Advanced WireGuard properties"));
 
     d->setting = setting;
 
     m_ui->proxyPassword->setPasswordOptionsEnabled(true);
     m_ui->proxyPassword->setPasswordNotRequiredEnabled(true);
 
-    connect(m_ui->cbCertCheck, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &WireguardAdvancedWidget::certCheckTypeChanged);
-    connect(m_ui->cmbProxyType, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &WireguardAdvancedWidget::proxyTypeChanged);
+    connect(m_ui->cbCertCheck, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &WireGuardAdvancedWidget::certCheckTypeChanged);
+    connect(m_ui->cmbProxyType, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &WireGuardAdvancedWidget::proxyTypeChanged);
     connect(m_ui->cboTLSMode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, [this] (int index) {
         if (index == 0) {
             m_ui->kurlTlsAuthKey->setDisabled(true);
@@ -87,7 +87,7 @@ WireguardAdvancedWidget::WireguardAdvancedWidget(const NetworkManager::VpnSettin
         }
     });
 
-    // start Wireguard process and get its cipher list
+    // start WireGuard process and get its cipher list
     const QString wireguardBinary = QStandardPaths::findExecutable("wireguard", QStringList() << "/sbin" << "/usr/sbin");
     const QStringList ciphersArgs(QLatin1String("--show-ciphers"));
     const QStringList versionArgs(QLatin1String("--version"));
@@ -95,21 +95,21 @@ WireguardAdvancedWidget::WireguardAdvancedWidget(const NetworkManager::VpnSettin
     d->wireguardCipherProcess = new KProcess(this);
     d->wireguardCipherProcess->setOutputChannelMode(KProcess::OnlyStdoutChannel);
     d->wireguardCipherProcess->setReadChannel(QProcess::StandardOutput);
-    connect(d->wireguardCipherProcess, static_cast<void (KProcess::*)(QProcess::ProcessError)>(&KProcess::error), this, &WireguardAdvancedWidget::wireguardCipherError);
-    connect(d->wireguardCipherProcess, &KProcess::readyReadStandardOutput, this, &WireguardAdvancedWidget::gotWireguardCipherOutput);
-    connect(d->wireguardCipherProcess, static_cast<void (KProcess::*)(int, QProcess::ExitStatus)>(&KProcess::finished), this, &WireguardAdvancedWidget::wireguardCipherFinished);
+    connect(d->wireguardCipherProcess, static_cast<void (KProcess::*)(QProcess::ProcessError)>(&KProcess::error), this, &WireGuardAdvancedWidget::wireguardCipherError);
+    connect(d->wireguardCipherProcess, &KProcess::readyReadStandardOutput, this, &WireGuardAdvancedWidget::gotWireGuardCipherOutput);
+    connect(d->wireguardCipherProcess, static_cast<void (KProcess::*)(int, QProcess::ExitStatus)>(&KProcess::finished), this, &WireGuardAdvancedWidget::wireguardCipherFinished);
     d->wireguardCipherProcess->setProgram(wireguardBinary, ciphersArgs);
 
     d->wireguardVersionProcess = new KProcess(this);
     d->wireguardVersionProcess->setOutputChannelMode(KProcess::OnlyStdoutChannel);
     d->wireguardVersionProcess->setReadChannel(QProcess::StandardOutput);
-    connect(d->wireguardVersionProcess, static_cast<void (KProcess::*)(QProcess::ProcessError)>(&KProcess::error), this, &WireguardAdvancedWidget::wireguardVersionError);
-    connect(d->wireguardVersionProcess, &KProcess::readyReadStandardOutput, this, &WireguardAdvancedWidget::gotWireguardVersionOutput);
-    connect(d->wireguardVersionProcess, static_cast<void (KProcess::*)(int, QProcess::ExitStatus)>(&KProcess::finished), this, &WireguardAdvancedWidget::wireguardVersionFinished);
+    connect(d->wireguardVersionProcess, static_cast<void (KProcess::*)(QProcess::ProcessError)>(&KProcess::error), this, &WireGuardAdvancedWidget::wireguardVersionError);
+    connect(d->wireguardVersionProcess, &KProcess::readyReadStandardOutput, this, &WireGuardAdvancedWidget::gotWireGuardVersionOutput);
+    connect(d->wireguardVersionProcess, static_cast<void (KProcess::*)(int, QProcess::ExitStatus)>(&KProcess::finished), this, &WireGuardAdvancedWidget::wireguardVersionFinished);
     d->wireguardVersionProcess->setProgram(wireguardBinary, versionArgs);
 
-    connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &WireguardAdvancedWidget::accept);
-    connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &WireguardAdvancedWidget::reject);
+    connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &WireGuardAdvancedWidget::accept);
+    connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &WireGuardAdvancedWidget::reject);
 
     KAcceleratorManager::manage(this);
 
@@ -118,29 +118,29 @@ WireguardAdvancedWidget::WireguardAdvancedWidget(const NetworkManager::VpnSettin
     }
 }
 
-WireguardAdvancedWidget::~WireguardAdvancedWidget()
+WireGuardAdvancedWidget::~WireGuardAdvancedWidget()
 {
     delete d;
 }
 
-void WireguardAdvancedWidget::init()
+void WireGuardAdvancedWidget::init()
 {
     d->wireguardCipherProcess->start();
     d->wireguardVersionProcess->start();
 }
 
-void WireguardAdvancedWidget::gotWireguardCipherOutput()
+void WireGuardAdvancedWidget::gotWireGuardCipherOutput()
 {
     d->wireguardCiphers.append(d->wireguardCipherProcess->readAll());
 }
 
-void WireguardAdvancedWidget::wireguardCipherError(QProcess::ProcessError)
+void WireGuardAdvancedWidget::wireguardCipherError(QProcess::ProcessError)
 {
     m_ui->cboCipher->removeItem(0);
-    m_ui->cboCipher->addItem(i18nc("@item:inlistbox Item added when Wireguard cipher lookup failed", "Wireguard cipher lookup failed"));
+    m_ui->cboCipher->addItem(i18nc("@item:inlistbox Item added when WireGuard cipher lookup failed", "WireGuard cipher lookup failed"));
 }
 
-void WireguardAdvancedWidget::wireguardCipherFinished(int exitCode, QProcess::ExitStatus exitStatus)
+void WireGuardAdvancedWidget::wireguardCipherFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     m_ui->cboCipher->removeItem(0);
     if (!exitCode && exitStatus == QProcess::NormalExit) {
@@ -158,15 +158,15 @@ void WireguardAdvancedWidget::wireguardCipherFinished(int exitCode, QProcess::Ex
         if (m_ui->cboCipher->count()) {
             m_ui->cboCipher->setEnabled(true);
         } else {
-            m_ui->cboCipher->addItem(i18nc("@item:inlistbox Item added when Wireguard cipher lookup failed", "No Wireguard ciphers found"));
+            m_ui->cboCipher->addItem(i18nc("@item:inlistbox Item added when WireGuard cipher lookup failed", "No WireGuard ciphers found"));
         }
     } else {
-        m_ui->cboCipher->addItem(i18nc("@item:inlistbox Item added when Wireguard cipher lookup failed", "Wireguard cipher lookup failed"));
+        m_ui->cboCipher->addItem(i18nc("@item:inlistbox Item added when WireGuard cipher lookup failed", "WireGuard cipher lookup failed"));
     }
     delete d->wireguardCipherProcess;
     d->wireguardCipherProcess = 0;
     d->wireguardCiphers = QByteArray();
-    d->gotWireguardCiphers = true;
+    d->gotWireGuardCiphers = true;
 
     if (d->readConfig) {
         const NMStringMap dataMap = d->setting->data();
@@ -176,20 +176,20 @@ void WireguardAdvancedWidget::wireguardCipherFinished(int exitCode, QProcess::Ex
     }
 }
 
-void WireguardAdvancedWidget::gotWireguardVersionOutput()
+void WireGuardAdvancedWidget::gotWireGuardVersionOutput()
 {
     d->wireguardVersion.append(d->wireguardVersionProcess->readAll());
 }
 
-void WireguardAdvancedWidget::wireguardVersionError(QProcess::ProcessError)
+void WireGuardAdvancedWidget::wireguardVersionError(QProcess::ProcessError)
 {
-    // We couldn't identify Wireguard version so disable tls-remote
+    // We couldn't identify WireGuard version so disable tls-remote
     disableLegacySubjectMatch();
 }
 
-void WireguardAdvancedWidget::wireguardVersionFinished(int exitCode, QProcess::ExitStatus exitStatus)
+void WireGuardAdvancedWidget::wireguardVersionFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    // Wireguard returns 1 when you use "--help" and unfortunately returns 1 even when some error occurs
+    // WireGuard returns 1 when you use "--help" and unfortunately returns 1 even when some error occurs
     if (exitCode == 1 && exitStatus == QProcess::NormalExit) {
         QStringList list = QString(d->wireguardVersion).split(QLatin1Char(' '));
         if (list.count() > 2) {
@@ -211,7 +211,7 @@ void WireguardAdvancedWidget::wireguardVersionFinished(int exitCode, QProcess::E
     delete d->wireguardVersionProcess;
     d->wireguardVersionProcess = 0;
     d->wireguardVersion = QByteArray();
-    d->gotWireguardVersion = true;
+    d->gotWireGuardVersion = true;
 
     if (d->readConfig) {
         const NMStringMap dataMap = d->setting->data();
@@ -221,7 +221,7 @@ void WireguardAdvancedWidget::wireguardVersionFinished(int exitCode, QProcess::E
     }
 }
 
-int WireguardAdvancedWidget::compareVersion(const int x, const int y, const int z) const
+int WireGuardAdvancedWidget::compareVersion(const int x, const int y, const int z) const
 {
     if (d->versionX == 0) {
         // Not valid version
@@ -244,12 +244,12 @@ int WireguardAdvancedWidget::compareVersion(const int x, const int y, const int 
     return 0;
 }
 
-void WireguardAdvancedWidget::disableLegacySubjectMatch()
+void WireGuardAdvancedWidget::disableLegacySubjectMatch()
 {
     m_ui->cbCertCheck->removeItem(CertCheckType::VerifySubjectPartially);
 }
 
-void WireguardAdvancedWidget::loadConfig()
+void WireGuardAdvancedWidget::loadConfig()
 {
     const NMStringMap dataMap = d->setting->data();
     const NMStringMap secrets = d->setting->secrets();
@@ -365,7 +365,7 @@ void WireguardAdvancedWidget::loadConfig()
     }
 
     // ciphers populated above?
-    if (d->gotWireguardCiphers && dataMap.contains(QLatin1String(NM_OPENVPN_KEY_CIPHER))) {
+    if (d->gotWireGuardCiphers && dataMap.contains(QLatin1String(NM_OPENVPN_KEY_CIPHER))) {
         m_ui->cboCipher->setCurrentIndex(m_ui->cboCipher->findText(dataMap[QLatin1String(NM_OPENVPN_KEY_CIPHER)]));
     }
 
@@ -450,7 +450,7 @@ void WireguardAdvancedWidget::loadConfig()
     fillOnePasswordCombo(m_ui->proxyPassword, type);
 }
 
-void WireguardAdvancedWidget::fillOnePasswordCombo(PasswordField *passwordField, NetworkManager::Setting::SecretFlags type)
+void WireGuardAdvancedWidget::fillOnePasswordCombo(PasswordField *passwordField, NetworkManager::Setting::SecretFlags type)
 {
     if (type.testFlag(NetworkManager::Setting::None)) {
         passwordField->setPasswordOption(PasswordField::StoreForAllUsers);
@@ -463,7 +463,7 @@ void WireguardAdvancedWidget::fillOnePasswordCombo(PasswordField *passwordField,
     }
 }
 
-NetworkManager::VpnSetting::Ptr WireguardAdvancedWidget::setting() const
+NetworkManager::VpnSetting::Ptr WireGuardAdvancedWidget::setting() const
 {
     NMStringMap data;
     NMStringMap secretData;
@@ -645,7 +645,7 @@ NetworkManager::VpnSetting::Ptr WireguardAdvancedWidget::setting() const
     return d->setting;
 }
 
-void WireguardAdvancedWidget::certCheckTypeChanged(int type)
+void WireGuardAdvancedWidget::certCheckTypeChanged(int type)
 {
     if (type == CertCheckType::DontVerify) {
         m_ui->lbSubjectMatch->setEnabled(false);
@@ -656,7 +656,7 @@ void WireguardAdvancedWidget::certCheckTypeChanged(int type)
     }
 }
 
-void WireguardAdvancedWidget::proxyTypeChanged(int type)
+void WireGuardAdvancedWidget::proxyTypeChanged(int type)
 {
     switch (type) {
     case Private::EnumProxyType::NotRequired:
@@ -683,7 +683,7 @@ void WireguardAdvancedWidget::proxyTypeChanged(int type)
     }
 }
 
-void WireguardAdvancedWidget::handleOnePasswordType(const PasswordField *passwordField, const QString & key, NMStringMap & data) const
+void WireGuardAdvancedWidget::handleOnePasswordType(const PasswordField *passwordField, const QString & key, NMStringMap & data) const
 {
     const PasswordField::PasswordOption option = passwordField->passwordOption();
     switch (option) {

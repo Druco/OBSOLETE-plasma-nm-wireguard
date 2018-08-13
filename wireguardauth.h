@@ -26,20 +26,20 @@
 
 #include "settingwidget.h"
 
-class WireguardAuthWidgetPrivate;
+class WireGuardAuthWidgetPrivate;
 
-class WireguardAuthWidget : public SettingWidget
+class WireGuardAuthWidget : public SettingWidget
 {
     Q_OBJECT
-    Q_DECLARE_PRIVATE(WireguardAuthWidget)
+    Q_DECLARE_PRIVATE(WireGuardAuthWidget)
 public:
-    explicit WireguardAuthWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
-    ~WireguardAuthWidget();
+    explicit WireGuardAuthWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
+    ~WireGuardAuthWidget();
     virtual void readSecrets();
     virtual QVariantMap setting() const;
 
 private:
-    WireguardAuthWidgetPrivate *const d_ptr;
+    WireGuardAuthWidgetPrivate *const d_ptr;
 };
 
 #endif // WIREGUARDAUTH_H

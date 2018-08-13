@@ -1,5 +1,5 @@
 # plasma-nm-wireguard
-Addition to plasma-nm to allow the use Wireguard VPN.
+Addition to plasma-nm to allow the use WireGuard VPN.
 
 If you run across this repository and want to try this, feel free. Just be aware that it is definitely still a work in progress. I started writing it for my own use and it is now to a point where I've been using it for a few days but there are things that need fixing.
 

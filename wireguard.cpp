@@ -39,7 +39,7 @@
 
 #include "nm-wireguard-service.h"
 
-K_PLUGIN_FACTORY_WITH_JSON(WireguardUiPluginFactory, "plasmanetworkmanagement_wireguardui.json", registerPlugin<WireguardUiPlugin>();)
+K_PLUGIN_FACTORY_WITH_JSON(WireGuardUiPluginFactory, "plasmanetworkmanagement_wireguardui.json", registerPlugin<WireGuardUiPlugin>();)
 
 #define NMV_WG_TAG_INTERFACE             "[Interface]"
 #define NMV_WG_TAG_PRIVATE_KEY           "PrivateKey"
@@ -61,36 +61,36 @@ K_PLUGIN_FACTORY_WITH_JSON(WireguardUiPluginFactory, "plasmanetworkmanagement_wi
 #define NMV_WG_TAG_PRESHARED_KEY         "PresharedKey"
 
 
-WireguardUiPlugin::WireguardUiPlugin(QObject * parent, const QVariantList &) : VpnUiPlugin(parent)
+WireGuardUiPlugin::WireGuardUiPlugin(QObject * parent, const QVariantList &) : VpnUiPlugin(parent)
 {
 }
 
-WireguardUiPlugin::~WireguardUiPlugin()
+WireGuardUiPlugin::~WireGuardUiPlugin()
 {
 }
 
-SettingWidget * WireguardUiPlugin::widget(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
+SettingWidget * WireGuardUiPlugin::widget(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
 {
-    WireguardSettingWidget * wid = new WireguardSettingWidget(setting, parent);
+    WireGuardSettingWidget * wid = new WireGuardSettingWidget(setting, parent);
     return wid;
 }
 
-SettingWidget * WireguardUiPlugin::askUser(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
+SettingWidget * WireGuardUiPlugin::askUser(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
 {
-    return new WireguardAuthWidget(setting, parent);
+    return new WireGuardAuthWidget(setting, parent);
 }
 
-QString WireguardUiPlugin::suggestedFileName(const NetworkManager::ConnectionSettings::Ptr &connection) const
+QString WireGuardUiPlugin::suggestedFileName(const NetworkManager::ConnectionSettings::Ptr &connection) const
 {
     return connection->id() + "_wireguard.conf";
 }
 
-QString WireguardUiPlugin::supportedFileExtensions() const
+QString WireGuardUiPlugin::supportedFileExtensions() const
 {
     return "*.conf";
 }
 
-NMVariantMapMap WireguardUiPlugin::importConnectionSettings(const QString &fileName)
+NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileName)
 {
     NMVariantMapMap result;
 
@@ -173,12 +173,12 @@ NMVariantMapMap WireguardUiPlugin::importConnectionSettings(const QString &fileN
                 address_list << key_value[1].split(QRegExp("\\s+,\\s*"));
                 for (int i = 0;i < address_list.size(); i++)
                 {
-                    if (WireguardUtils::is_ip4(address_list[i]))
+                    if (WireGuardUtils::is_ip4(address_list[i]))
                     {
                         dataMap.insert(QLatin1String(NM_WG_KEY_ADDR_IP4), address_list[i]);
                         have_address = true;
                     }
-                    else if (WireguardUtils::is_ip6(address_list[i]))
+                    else if (WireGuardUtils::is_ip6(address_list[i]))
                     {
                         dataMap.insert(QLatin1String(NM_WG_KEY_ADDR_IP6), address_list[i]);
                         have_address = true;
@@ -189,7 +189,7 @@ NMVariantMapMap WireguardUiPlugin::importConnectionSettings(const QString &fileN
             // Listen Port
             else if (key_value[0] == NMV_WG_TAG_LISTEN_PORT)
             {
-                if (WireguardUtils::is_num_valid(key_value[1], 0, 65535))
+                if (WireGuardUtils::is_num_valid(key_value[1], 0, 65535))
                 {
                     dataMap.insert(QLatin1String(NM_WG_KEY_LISTEN_PORT), key_value[1]);
                 }
@@ -206,7 +206,7 @@ NMVariantMapMap WireguardUiPlugin::importConnectionSettings(const QString &fileN
             // DNS
             else if (key_value[0] == NMV_WG_TAG_DNS)
             {
-                if (WireguardUtils::is_ip4(key_value[1]))
+                if (WireGuardUtils::is_ip4(key_value[1]))
                 {
                     dataMap.insert(QLatin1String(NM_WG_KEY_DNS), key_value[1]);
                 }
@@ -214,7 +214,7 @@ NMVariantMapMap WireguardUiPlugin::importConnectionSettings(const QString &fileN
             // MTU
             else if (key_value[0] == NMV_WG_TAG_MTU)
             {
-                if (WireguardUtils::is_num_valid(key_value[1]))
+                if (WireGuardUtils::is_num_valid(key_value[1]))
                 {
                     dataMap.insert(QLatin1String(NM_WG_KEY_MTU), key_value[1]);
                 }
@@ -222,7 +222,7 @@ NMVariantMapMap WireguardUiPlugin::importConnectionSettings(const QString &fileN
             // Table
             else if (key_value[0] == NMV_WG_TAG_TABLE)
             {
-                if (WireguardUtils::is_num_valid(key_value[1]))
+                if (WireGuardUtils::is_num_valid(key_value[1]))
                 {
                     dataMap.insert(QLatin1String(NM_WG_KEY_TABLE), key_value[1]);
                 }
@@ -291,7 +291,7 @@ NMVariantMapMap WireguardUiPlugin::importConnectionSettings(const QString &fileN
     {
 
         mError = VpnUiPlugin::Error;
-        mErrorMessage = i18n("File %1 is not a valid Wireguard configuration (no remote).", fileName);
+        mErrorMessage = i18n("File %1 is not a valid WireGuard configuration (no remote).", fileName);
         return result;
     }
 
@@ -309,7 +309,7 @@ NMVariantMapMap WireguardUiPlugin::importConnectionSettings(const QString &fileN
     return result;
 }
 
-QString WireguardUiPlugin::saveFile(QTextStream &in, const QString &endTag, const QString &connectionName, const QString &fileName)
+QString WireGuardUiPlugin::saveFile(QTextStream &in, const QString &endTag, const QString &connectionName, const QString &fileName)
 {
     const QString certificatesDirectory = KStandardDirs::locateLocal("data", "networkmanagement/certificates/" + connectionName);
     const QString absoluteFilePath = certificatesDirectory + '/' + fileName;
@@ -338,7 +338,7 @@ QString WireguardUiPlugin::saveFile(QTextStream &in, const QString &endTag, cons
     return absoluteFilePath;
 }
 
-QString WireguardUiPlugin::tryToCopyToCertificatesDirectory(const QString &connectionName, const QString &sourceFilePath)
+QString WireGuardUiPlugin::tryToCopyToCertificatesDirectory(const QString &connectionName, const QString &sourceFilePath)
 {
 #if 0
     const QString certificatesDirectory = KStandardDirs::locateLocal("data", "networkmanagement/certificates/");
@@ -358,7 +358,7 @@ const QString result = "";
 return result;
 }
 
-bool WireguardUiPlugin::exportConnectionSettings(const NetworkManager::ConnectionSettings::Ptr &connection, const QString &fileName)
+bool WireGuardUiPlugin::exportConnectionSettings(const NetworkManager::ConnectionSettings::Ptr &connection, const QString &fileName)
 {
 #if 0
     QFile expFile(fileName);
@@ -536,7 +536,7 @@ bool WireguardUiPlugin::exportConnectionSettings(const NetworkManager::Connectio
 // that is, four segments of numbers (0-255), separated by dots
 // additionally, there may be a port suffix (separated from the address by a colon; 0 - 65535)
 // and/or a subnet (separated by the rest by a slash; 0 - 32)
-bool WireguardUiPlugin::is_ip4(QString addr)
+bool WireGuardUiPlugin::is_ip4(QString addr)
 {
 	int idx = 0;
 	QStringList parts;
@@ -624,7 +624,7 @@ bool WireguardUiPlugin::is_ip4(QString addr)
 // if there are several zeroes in adjacent segments,
 // those segments may be omitted
 gboolean
-WireguardUiPlugin::is_ip6(QString addr)
+WireGuardUiPlugin::is_ip6(QString addr)
 {
 	gchar **parts;
 	gchar **tmp;
