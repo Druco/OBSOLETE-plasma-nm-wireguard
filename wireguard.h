@@ -45,7 +45,6 @@ public:
 
 private:
     QString saveFile(QTextStream &in, const QString &endTag, const QString &connectionName, const QString &fileName);
-    QString tryToCopyToCertificatesDirectory(const QString &connectionName, const QString &sourceFilePath);
 };
 
 #endif //  PLASMANM_WIREGUARD_H

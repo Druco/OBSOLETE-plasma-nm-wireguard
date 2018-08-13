@@ -48,7 +48,6 @@ public:
     virtual bool isValid() const;
 
 private Q_SLOTS:
-    void updateStartDir(const QUrl &);
     void showAdvanced();
 
 private:
@@ -56,10 +55,8 @@ private:
     Private *d;
     void setPasswordType(QLineEdit *, int);
     bool isAddressValid() const;
-    bool isListenPortValid() const;
     bool isPrivateKeyValid() const;
     bool isDNSValid() const;
-    bool isMTUValid() const;
     bool isPublicKeyValid() const;
     bool isAllowedIPsValid() const;
     bool isEndpointValid() const;
