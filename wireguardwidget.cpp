@@ -103,27 +103,16 @@ void WireGuardSettingWidget::loadConfig(const NetworkManager::Setting::Ptr &sett
     d->ui.allowedIPsLineEdit->setText(dataMap[NM_WG_KEY_ALLOWED_IPS]);
     d->ui.endpointLineEdit->setText(dataMap[NM_WG_KEY_ENDPOINT]);
     
-#if 0
-    loadSecrets(setting);
-#endif
 }
 
 void WireGuardSettingWidget::loadSecrets(const NetworkManager::Setting::Ptr &setting)
 {
-#if 0
-    NetworkManager::VpnSetting::Ptr vpnSetting = setting.staticCast<NetworkManager::VpnSetting>();
-
-    if (vpnSetting) {
-        const NMStringMap secrets = vpnSetting->secrets();
-        d->ui.privateKeyLineEdit->setText(secrets[NM_WG_KEY_PRIVATE_KEY]);
-    }
-#endif
+    // Currently WireGuard does not have any secrets
 }
 
 QVariantMap WireGuardSettingWidget::setting() const
 {
     NMStringMap data = d->setting->data();
-    NMStringMap secretData = d->setting->secrets();
     NetworkManager::VpnSetting setting;
     setting.setServiceType(QLatin1String(NM_DBUS_SERVICE_WIREGUARD));
 
@@ -140,7 +129,7 @@ QVariantMap WireGuardSettingWidget::setting() const
     setOrClear(data, QLatin1String(NM_WG_KEY_ENDPOINT), d->ui.endpointLineEdit->displayText());
 
     setting.setData(data);
-    setting.setSecrets(secretData);
+
     return setting.toMap();
 }
 
@@ -170,7 +159,6 @@ void WireGuardSettingWidget::showAdvanced()
                 NetworkManager::VpnSetting::Ptr advData = adv->setting();
                 if (!advData.isNull()) {
                     d->setting->setData(advData->data());
-                    d->setting->setSecrets(advData->secrets());
                 }
             });
     connect(adv.data(), &WireGuardAdvancedWidget::finished,
