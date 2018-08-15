@@ -1,7 +1,4 @@
 /*
-    Copyright 2011 Ilia Kats <ilia-kats@gmx.net>
-    Copyright 2013 Lukáš Tinkl <ltinkl@redhat.com>
-
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
     published by the Free Software Foundation; either version 2 of
@@ -20,23 +17,15 @@
 */
 
 #include "wireguardauth.h"
-#include "passwordfield.h"
+#include "ui_wireguardauth.h"
 
 #include <QString>
-#include <QFormLayout>
-#include <QLabel>
-#include <QCheckBox>
-
-#include <KLocalizedString>
-
-#include "nm-wireguard-service.h"
-#include "debug.h"
 
 class WireGuardAuthWidgetPrivate
 {
 public:
+    Ui_WireGuardAuth ui;
     NetworkManager::VpnSetting::Ptr setting;
-    QFormLayout *layout;
 };
 
 WireGuardAuthWidget::WireGuardAuthWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
@@ -44,11 +33,8 @@ WireGuardAuthWidget::WireGuardAuthWidget(const NetworkManager::VpnSetting::Ptr &
     , d_ptr(new WireGuardAuthWidgetPrivate)
 {
     Q_D(WireGuardAuthWidget);
+    d->ui.setupUi(this);
     d->setting = setting;
-    d->layout = new QFormLayout(this);
-    setLayout(d->layout);
-
-    readSecrets();
 
     KAcceleratorManager::manage(this);
 }
@@ -58,91 +44,12 @@ WireGuardAuthWidget::~WireGuardAuthWidget()
     delete d_ptr;
 }
 
-void WireGuardAuthWidget::readSecrets()
-{
-    Q_D(WireGuardAuthWidget);
-    const NMStringMap secrets = d->setting->secrets();
-    const NMStringMap dataMap = d->setting->data();
-#if 0
-    const QString cType = dataMap[NM_OPENVPN_KEY_CONNECTION_TYPE];
-    QLabel *label;
-    PasswordField *lineEdit;
 
-    NetworkManager::Setting::SecretFlags certType = (NetworkManager::Setting::SecretFlags)dataMap.value(NM_OPENVPN_KEY_CERTPASS"-flags").toInt();
-    NetworkManager::Setting::SecretFlags passType = (NetworkManager::Setting::SecretFlags)dataMap.value(NM_OPENVPN_KEY_PASSWORD"-flags").toInt();
-    NetworkManager::Setting::SecretFlags proxyType = (NetworkManager::Setting::SecretFlags)dataMap.value(NM_OPENVPN_KEY_HTTP_PROXY_PASSWORD"-flags").toInt();
-
-    if (cType == QLatin1String(NM_OPENVPN_CONTYPE_TLS) && !(certType.testFlag(NetworkManager::Setting::NotRequired))) {
-        label = new QLabel(this);
-        label->setText(i18n("Key Password:"));
-        lineEdit = new PasswordField(this);
-        lineEdit->setPasswordModeEnabled(true);
-        lineEdit->setProperty("nm_secrets_key", QLatin1String(NM_OPENVPN_KEY_CERTPASS));
-        lineEdit->setText(secrets.value(QLatin1String(NM_OPENVPN_KEY_CERTPASS)));
-        d->layout->addRow(label, lineEdit);
-    } else if (cType == QLatin1String(NM_OPENVPN_CONTYPE_PASSWORD) && !(passType.testFlag(NetworkManager::Setting::NotRequired))) {
-        label = new QLabel(this);
-        label->setText(i18n("Password:"));
-        lineEdit = new PasswordField(this);
-        lineEdit->setPasswordModeEnabled(true);
-        lineEdit->setProperty("nm_secrets_key", QLatin1String(NM_OPENVPN_KEY_PASSWORD));
-        lineEdit->setText(secrets.value(QLatin1String(NM_OPENVPN_KEY_PASSWORD)));
-        d->layout->addRow(label, lineEdit);
-    } else if (cType == QLatin1String(NM_OPENVPN_CONTYPE_PASSWORD_TLS)) {
-        if (!(passType.testFlag(NetworkManager::Setting::NotRequired))) {
-            label = new QLabel(this);
-            label->setText(i18n("Password:"));
-            lineEdit = new PasswordField(this);
-            lineEdit->setPasswordModeEnabled(true);
-            lineEdit->setProperty("nm_secrets_key", QLatin1String(NM_OPENVPN_KEY_PASSWORD));
-            lineEdit->setText(secrets.value(QLatin1String(NM_OPENVPN_KEY_PASSWORD)));
-            d->layout->addRow(label, lineEdit);
-        }
-        if (!(certType.testFlag(NetworkManager::Setting::NotRequired))) {
-            label = new QLabel(this);
-            label->setText(i18n("Key Password:"));
-            lineEdit = new PasswordField(this);
-            lineEdit->setPasswordModeEnabled(true);
-            lineEdit->setProperty("nm_secrets_key", QLatin1String(NM_OPENVPN_KEY_CERTPASS));
-            lineEdit->setText(secrets.value(QLatin1String(NM_OPENVPN_KEY_CERTPASS)));
-            d->layout->addRow(label, lineEdit);
-        }
-    }
-
-    if (dataMap.contains(NM_OPENVPN_KEY_HTTP_PROXY_PASSWORD"-flags") && !(proxyType.testFlag(NetworkManager::Setting::NotRequired))) {
-        label = new QLabel(this);
-        label->setText(i18n("Proxy Password:"));
-        lineEdit = new PasswordField(this);
-        lineEdit->setPasswordModeEnabled(true);
-        lineEdit->setProperty("nm_secrets_key", QLatin1String(NM_OPENVPN_KEY_HTTP_PROXY_PASSWORD));
-        lineEdit->setText(secrets.value(QLatin1String(NM_OPENVPN_KEY_HTTP_PROXY_PASSWORD)));
-        d->layout->addRow(label, lineEdit);
-    }
-
-    for (int i = 0; i < d->layout->rowCount(); i++) {
-        PasswordField *le = qobject_cast<PasswordField*>(d->layout->itemAt(i, QFormLayout::FieldRole)->widget());
-        if (le && le->text().isEmpty()) {
-            le->setFocus(Qt::OtherFocusReason);
-            break;
-        }
-    }
-#endif
-}
 
 QVariantMap WireGuardAuthWidget::setting() const
 {
     Q_D(const WireGuardAuthWidget);
 
-    NMStringMap secrets;
-    QVariantMap secretData;
-    for (int i = 0; i < d->layout->rowCount(); i++) {
-        PasswordField *le = qobject_cast<PasswordField*>(d->layout->itemAt(i, QFormLayout::FieldRole)->widget());
-        if (le && !le->text().isEmpty()) {
-            const QString key = le->property("nm_secrets_key").toString();
-            secrets.insert(key, le->text());
-        }
-    }
-
-    secretData.insert("secrets", QVariant::fromValue<NMStringMap>(secrets));
-    return secretData;
+    QVariantMap result;
+    return result;
 }

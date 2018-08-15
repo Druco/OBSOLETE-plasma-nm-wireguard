@@ -9,7 +9,7 @@ set(wireguard_SRCS
     wireguardutils.cpp
 )
 
-ki18n_wrap_ui(wireguard_SRCS wireguard.ui wireguardadvanced.ui)
+ki18n_wrap_ui(wireguard_SRCS wireguard.ui wireguardadvanced.ui wireguardauth.ui)
 
 add_library(plasmanetworkmanagement_wireguardui ${wireguard_SRCS})
 

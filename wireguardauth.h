@@ -35,7 +35,6 @@ class WireGuardAuthWidget : public SettingWidget
 public:
     explicit WireGuardAuthWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
     ~WireGuardAuthWidget();
-    virtual void readSecrets();
     virtual QVariantMap setting() const;
 
 private:

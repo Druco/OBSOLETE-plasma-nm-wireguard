@@ -62,11 +62,6 @@ private:
     bool isEndpointValid() const;
     void setOrClear(NMStringMap &data, QLatin1String key, QString value) const;
 
-
-#if 0
-    void fillOnePasswordCombo(PasswordField *, NetworkManager::Setting::SecretFlags);
-    void handleOnePasswordType(const PasswordField *, const QString &, NMStringMap &) const;
-#endif
 };
 
 #endif // WIREGUARDWIDGET_H

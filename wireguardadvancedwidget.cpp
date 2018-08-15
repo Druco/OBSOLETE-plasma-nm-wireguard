@@ -124,7 +124,6 @@ bool WireGuardAdvancedWidget::isPresharedKeyValid() const
 void WireGuardAdvancedWidget::loadConfig()
 {
     const NMStringMap dataMap = d->setting->data();
-    const NMStringMap secrets = d->setting->secrets();
 
     m_ui->listenPortLineEdit->setText(dataMap[NM_WG_KEY_LISTEN_PORT]);
     m_ui->mTULineEdit->setText(dataMap[NM_WG_KEY_MTU]);
@@ -153,7 +152,6 @@ void WireGuardAdvancedWidget::setOrClear(NMStringMap &data, QLatin1String key, Q
 NetworkManager::VpnSetting::Ptr WireGuardAdvancedWidget::setting() const
 {
     NMStringMap data;
-    NMStringMap secretData;
 
     setOrClear(data, QLatin1String(NM_WG_KEY_LISTEN_PORT), m_ui->listenPortLineEdit->displayText());
     setOrClear(data, QLatin1String(NM_WG_KEY_MTU), m_ui->mTULineEdit->displayText());
