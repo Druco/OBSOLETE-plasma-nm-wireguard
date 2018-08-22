@@ -118,7 +118,19 @@ bool WireGuardAdvancedWidget::isFwMarkValid() const
 
 bool WireGuardAdvancedWidget::isPresharedKeyValid() const
 {
-    return true;
+    // The preshared key is not required so it is valid if not present
+    bool valid = (0 == m_ui->presharedKeyLineEdit->text().length() ||
+                  WireGuardUtils::is_key_valid(m_ui->presharedKeyLineEdit->text()));
+
+    if (!valid)
+    {
+        m_ui->presharedKeyLineEdit->setStyleSheet("* { background-color: rgb(255,128, 128) }");
+    }
+    else
+    {
+        m_ui->presharedKeyLineEdit->setStyleSheet("* { background-color:  }");
+    }
+    return valid;
 }
 
 void WireGuardAdvancedWidget::loadConfig()

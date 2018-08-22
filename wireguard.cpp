@@ -196,7 +196,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
             // Private Key
             else if (key_value[0] == NMV_WG_TAG_PRIVATE_KEY)
             {
-                if (key_value[1].length() > 0)
+                if (WireGuardUtils::is_key_valid(key_value[1]))
                 {
                     dataMap.insert(QLatin1String(NM_WG_KEY_PRIVATE_KEY), key_value[1]);
                     have_private_key = true;
@@ -248,7 +248,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
             // Public Key
             if (key_value[0] == NMV_WG_TAG_PUBLIC_KEY)
             {
-                if (key_value[1].length() > 0)
+                if (WireGuardUtils::is_key_valid(key_value[1]))
                 {
                     dataMap.insert(QLatin1String(NM_WG_KEY_PUBLIC_KEY), key_value[1]);
                     have_public_key = true;
@@ -275,7 +275,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
             // Preshared Key
             else if (key_value[0] == NMV_WG_TAG_PRESHARED_KEY)
             {
-                if (key_value[1].length() > 0)
+                if (WireGuardUtils::is_key_valid(key_value[1]))
                 {
                     dataMap.insert(QLatin1String(NM_WG_KEY_PRESHARED_KEY), key_value[1]);
                 }
@@ -291,7 +291,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
     {
 
         mError = VpnUiPlugin::Error;
-        mErrorMessage = i18n("File %1 is not a valid WireGuard configuration (no remote).", fileName);
+        mErrorMessage = i18n("File %1 is not a valid WireGuard configuration.", fileName);
         return result;
     }
 
