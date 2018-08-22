@@ -205,9 +205,9 @@ bool WireGuardSettingWidget::isAddressValid() const
 
 bool WireGuardSettingWidget::isPrivateKeyValid() const
 {
-    bool present = (0 != d->ui.privateKeyLineEdit->text().length());
+    bool valid = WireGuardUtils::is_key_valid(d->ui.privateKeyLineEdit->text());
 
-    if (!present)
+    if (!valid)
     {
         d->ui.privateKeyLineEdit->setStyleSheet("* { background-color: rgb(255,128, 128) }");
     }
@@ -215,7 +215,7 @@ bool WireGuardSettingWidget::isPrivateKeyValid() const
     {
         d->ui.privateKeyLineEdit->setStyleSheet("* { background-color:  }");
     }
-    return present;
+    return valid;
 }
 
 bool WireGuardSettingWidget::isDNSValid() const
@@ -238,9 +238,9 @@ bool WireGuardSettingWidget::isDNSValid() const
 
 bool WireGuardSettingWidget::isPublicKeyValid() const
 {
-    bool present = (0 != d->ui.publicKeyLineEdit->text().length());
+    bool valid = WireGuardUtils::is_key_valid(d->ui.publicKeyLineEdit->text());
 
-    if (!present)
+    if (!valid)
     {
         d->ui.publicKeyLineEdit->setStyleSheet("* { background-color: rgb(255,128, 128) }");
     }
@@ -248,7 +248,7 @@ bool WireGuardSettingWidget::isPublicKeyValid() const
     {
         d->ui.publicKeyLineEdit->setStyleSheet("* { background-color:  }");
     }
-    return present;
+    return valid;
 }
 
 bool WireGuardSettingWidget::isAllowedIPsValid() const

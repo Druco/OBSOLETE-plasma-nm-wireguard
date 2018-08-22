@@ -230,3 +230,18 @@ bool WireGuardUtils::is_ip6(QString addr, bool allow_subnet, bool allow_port)
 
     return true;
 }
+
+// Check if a string is a valid WireGuard key which should be
+// 44 characters long and composed alphanumeric characters, plus
+// sign, and slash with the last one being an equal sign.
+bool WireGuardUtils::is_key_valid(QString candidate)
+{
+    if (44 != candidate.length() ||
+        43 != candidate.indexOf(QRegExp("[^a-zA-Z0-9+/]")) ||
+        43 != candidate.indexOf("="))
+    {
+        return false;
+    }
+
+    return true;
+}
