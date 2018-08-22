@@ -115,7 +115,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
     bool have_endpoint = false;
 
     QTextStream in(&impFile);
-    enum {IDLE, INTERFACE_SECTION, PEER_SECTION} current_state;
+    enum {IDLE, INTERFACE_SECTION, PEER_SECTION} current_state = IDLE;
 
     while (!in.atEnd()) {
         QStringList key_value;
@@ -142,7 +142,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
             }
         }
 
-        if (key_value[0] == NMV_WG_TAG_PEER)
+        else if (key_value[0] == NMV_WG_TAG_PEER)
         {
             // Currently only on PEER section is allowed
             if (current_state == INTERFACE_SECTION)
@@ -169,7 +169,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
             if (key_value[0] == NMV_WG_TAG_ADDRESS)
             {
                 QStringList address_list;
-                address_list << key_value[1].split(QRegExp("\\s+,\\s*"));
+                address_list << key_value[1].split(QRegExp("\\s*,\\s*"));
                 for (int i = 0;i < address_list.size(); i++)
                 {
                     if (WireGuardUtils::is_ip4(address_list[i]))
@@ -234,6 +234,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
                      key_value[0] == NMV_WG_TAG_PRE_DOWN  ||
                      key_value[0] == NMV_WG_TAG_POST_DOWN)
             {
+                // TODO: maybe add these back in
             }
             else
             {
@@ -282,7 +283,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
         }
         else   // We're in IDLE or unknown state so it's an error
         {
-            // ERROR - BAA
+            // TODO - add error handling
             break;
         }
     }
@@ -295,7 +296,7 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
     }
 
     NetworkManager::VpnSetting setting;
-    setting.setServiceType("org.freedesktop.NetworkManager.wireguard");
+    setting.setServiceType(QLatin1String(NM_DBUS_SERVICE_WIREGUARD));
     setting.setData(dataMap);
 
     QVariantMap conn;
