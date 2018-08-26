@@ -53,10 +53,12 @@ WireGuardAdvancedWidget::WireGuardAdvancedWidget(const NetworkManager::VpnSettin
     connect(m_ui->mTULineEdit, &QLineEdit::textChanged, this, &WireGuardAdvancedWidget::isMTUValid);
     connect(m_ui->tableLineEdit, &QLineEdit::textChanged, this, &WireGuardAdvancedWidget::isTableValid);
     connect(m_ui->fwMarkLineEdit, &QLineEdit::textChanged, this, &WireGuardAdvancedWidget::isFwMarkValid);
-    connect(m_ui->presharedKeyLineEdit, &QLineEdit::textChanged, this, &WireGuardAdvancedWidget::isPresharedKeyValid);
+    connect(m_ui->presharedKeyLineEdit, &PasswordField::textChanged, this, &WireGuardAdvancedWidget::isPresharedKeyValid);
 
     connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &WireGuardAdvancedWidget::accept);
     connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &WireGuardAdvancedWidget::reject);
+
+    m_ui->presharedKeyLineEdit->setPasswordModeEnabled(true);
 
     KAcceleratorManager::manage(this);
 
@@ -169,7 +171,7 @@ NetworkManager::VpnSetting::Ptr WireGuardAdvancedWidget::setting() const
     setOrClear(data, QLatin1String(NM_WG_KEY_MTU), m_ui->mTULineEdit->displayText());
     setOrClear(data, QLatin1String(NM_WG_KEY_TABLE), m_ui->tableLineEdit->displayText());
     setOrClear(data, QLatin1String(NM_WG_KEY_FWMARK), m_ui->fwMarkLineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_PRESHARED_KEY), m_ui->presharedKeyLineEdit->displayText());
+    setOrClear(data, QLatin1String(NM_WG_KEY_PRESHARED_KEY), m_ui->presharedKeyLineEdit->text());
     setOrClear(data, QLatin1String(NM_WG_KEY_PRE_UP), m_ui->preUpScriptLineEdit->displayText());
     setOrClear(data, QLatin1String(NM_WG_KEY_POST_UP), m_ui->postUpScriptLineEdit->displayText());
     setOrClear(data, QLatin1String(NM_WG_KEY_PRE_DOWN), m_ui->preDownScriptLineEdit->displayText());
