@@ -173,10 +173,12 @@ void WireGuardSettingWidget::showAdvanced()
 
 bool WireGuardSettingWidget::isValid() const
 {
-#if 0
-    return !d->ui.gateway->text().isEmpty();
-#endif
-    return true;
+    return (isAddressValid() &&
+            isPrivateKeyValid() &&
+            isDNSValid() &&
+            isPublicKeyValid() &&
+            isAllowedIPsValid() &&
+            isEndpointValid());
 }
 
 bool WireGuardSettingWidget::isAddressValid() const
