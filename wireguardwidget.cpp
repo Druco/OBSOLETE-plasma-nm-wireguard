@@ -1,7 +1,5 @@
 /*
-    Copyright 2008 Will Stephenson <wstephenson@kde.org>
-    Copyright 2013 Lukáš Tinkl <ltinkl@redhat.com>
-
+  
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
     published by the Free Software Foundation; either version 2 of
@@ -145,11 +143,6 @@ void WireGuardSettingWidget::setOrClear(NMStringMap &data, QLatin1String key, QS
     }
 }    
 
-void WireGuardSettingWidget::setPasswordType(QLineEdit *edit, int type)
-{
-    edit->setEnabled(type == SettingWidget::EnumPasswordStorageType::Store);
-}
-
 void WireGuardSettingWidget::showAdvanced()
 {
     QPointer<WireGuardAdvancedWidget> adv = new WireGuardAdvancedWidget(d->setting, this);
@@ -185,7 +178,7 @@ bool WireGuardSettingWidget::isAddressValid() const
 {
     bool ip4valid = WireGuardUtils::is_ip4(d->ui.addressIPv4LineEdit->displayText(), true, false);
     bool ip4present = (d->ui.addressIPv4LineEdit->displayText().length() != 0);
-    bool ip6valid = WireGuardUtils::is_ip6(d->ui.addressIPv6LineEdit->displayText(), true, false);
+    bool ip6valid = WireGuardUtils::is_ip6(d->ui.addressIPv6LineEdit->displayText(), true);
     bool ip6present = (d->ui.addressIPv6LineEdit->displayText().length() != 0);
                    
     bool result = (ip4valid && ip6valid) ||
@@ -265,7 +258,7 @@ bool WireGuardSettingWidget::isAllowedIPsValid() const
 
         for (int i = 0; i < addrs.size(); i++)
         {
-            if (!WireGuardUtils::is_ip4(addrs[i], true, false) && !WireGuardUtils::is_ip6(addrs[i], true, false))
+            if (!WireGuardUtils::is_ip4(addrs[i], true, false) && !WireGuardUtils::is_ip6(addrs[i], true))
             {
                 result = false;
             }

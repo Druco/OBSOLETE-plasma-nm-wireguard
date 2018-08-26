@@ -1,6 +1,4 @@
 /*
-    Copyright 2008 Will Stephenson <wstephenson@kde.org>
-    Copyright 2013 Lukáš Tinkl <ltinkl@redhat.com>
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -53,7 +51,6 @@ private Q_SLOTS:
 private:
     class Private;
     Private *d;
-    void setPasswordType(QLineEdit *, int);
     bool isAddressValid() const;
     bool isPrivateKeyValid() const;
     bool isDNSValid() const;
