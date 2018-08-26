@@ -310,35 +310,6 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
     return result;
 }
 
-QString WireGuardUiPlugin::saveFile(QTextStream &in, const QString &endTag, const QString &connectionName, const QString &fileName)
-{
-    const QString certificatesDirectory = KStandardDirs::locateLocal("data", "networkmanagement/certificates/" + connectionName);
-    const QString absoluteFilePath = certificatesDirectory + '/' + fileName;
-#if 0
-    QFile outFile(absoluteFilePath);
-
-    QDir().mkpath(certificatesDirectory);
-    if (!outFile.open(QFile::WriteOnly | QFile::Text)) {
-        KMessageBox::information(0, i18n("Error saving file %1: %2", absoluteFilePath, outFile.errorString()));
-        return QString();
-    }
-
-    QTextStream out(&outFile);
-    while (!in.atEnd()) {
-        const QString line = in.readLine();
-
-        if (line.indexOf(endTag) >= 0) {
-            break;
-        }
-
-        out << line << "\n";
-    }
-
-    outFile.close();
-#endif
-    return absoluteFilePath;
-}
-
 bool WireGuardUiPlugin::exportConnectionSettings(const NetworkManager::ConnectionSettings::Ptr &connection, const QString &fileName)
 {
     QFile expFile(fileName);
