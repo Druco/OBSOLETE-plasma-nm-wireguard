@@ -119,7 +119,10 @@ bool WireGuardUtils::is_ip4(QString addr, bool allow_subnet, bool allow_port)
 	return true;
 }
 
-bool WireGuardUtils::is_ip6(QString addr, bool allow_subnet, bool allow_port)
+// check if the given string looks like an IPv6 address
+// that is, eight segments of hex numbers (00-ff), separated by colons
+// additionally, there may be a subnet (separated by the rest by a slash; 0 - 128)
+bool WireGuardUtils::is_ip6(QString addr, bool allow_subnet)
 {
 	QStringList parts;
 	QStringList lastpart;
@@ -232,7 +235,7 @@ bool WireGuardUtils::is_ip6(QString addr, bool allow_subnet, bool allow_port)
 }
 
 // Check if a string is a valid WireGuard key which should be
-// 44 characters long and composed alphanumeric characters, plus
+// 44 characters long and composed of alphanumeric characters, plus
 // sign, and slash with the last one being an equal sign.
 bool WireGuardUtils::is_key_valid(QString candidate)
 {

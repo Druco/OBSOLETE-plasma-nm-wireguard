@@ -24,6 +24,6 @@ class WireGuardUtils
 public:
     static bool is_num_valid(QString candidate, int min=0, int max=0);
     static bool is_ip4(QString addr, bool allow_subnet=true, bool allow_port=true);
-    static bool is_ip6(QString addr, bool allow_subnet=true, bool allow_port=true);
+    static bool is_ip6(QString addr, bool allow_subnet=true);
     static bool is_key_valid(QString candidate);
 };

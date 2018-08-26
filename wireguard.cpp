@@ -227,20 +227,28 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
                     dataMap.insert(QLatin1String(NM_WG_KEY_TABLE), key_value[1]);
                 }
             }
-            // PreUp, PostUp, PreDown and PostDown are just ignored because
-            // that will be handled by the Network Manager scripts rather than
-            // wg-quick
-            else if (key_value[0] == NMV_WG_TAG_PRE_UP    ||
-                     key_value[0] == NMV_WG_TAG_POST_UP   ||
-                     key_value[0] == NMV_WG_TAG_PRE_DOWN  ||
-                     key_value[0] == NMV_WG_TAG_POST_DOWN)
+            else if (key_value[0] == NMV_WG_TAG_PRE_UP)
             {
-                // TODO: maybe add these back in
+                dataMap.insert(QLatin1String(NM_WG_KEY_PRE_UP), key_value[1]);
+            }
+            else if (key_value[0] == NMV_WG_TAG_POST_UP)
+            {
+                dataMap.insert(QLatin1String(NM_WG_KEY_POST_UP), key_value[1]);
+            }
+            else if (key_value[0] == NMV_WG_TAG_PRE_DOWN)
+            {
+                dataMap.insert(QLatin1String(NM_WG_KEY_PRE_DOWN), key_value[1]);
+            }
+            else if (key_value[0] == NMV_WG_TAG_POST_DOWN)
+            {
+                dataMap.insert(QLatin1String(NM_WG_KEY_POST_DOWN), key_value[1]);
             }
             else
             {
                 // We got a wrong field in the Interface section so it
                 // is an error
+                mError = VpnUiPlugin::Error;
+                mErrorMessage = i18n("Invalid key %1 in [Interface] section", key_value[0]);
                 break;
             }
         }
@@ -285,6 +293,8 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
         else   // We're in IDLE or unknown state so it's an error
         {
             // TODO - add error handling
+            mError = VpnUiPlugin::Error;
+            mErrorMessage = i18n("Unknown state in import file");
             break;
         }
     }
