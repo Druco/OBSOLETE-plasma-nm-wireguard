@@ -17,7 +17,7 @@ This is just a mirrored/updated version of project https://phabricator.kde.org/D
 All merit to https://github.com/Druco  
 
 ### Releases
-I am distributing an rpm RHEL based version awaiting the project to be upstreamed and released (Just check the releases page) 
+I am distributing an rpm package, RHEL based version awaiting the project to be upstreamed and released (Just check the releases page) 
 
 ### Compilation
 - To compile you need to get [plasma-nm](https://github.com/KDE/plasma-nm) and clone this project under the 'vpn' directory in that tree, 
