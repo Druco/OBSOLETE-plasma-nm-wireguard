@@ -1,7 +1,7 @@
 # KDE Plasma Network Manager Wireguard 
 (plasma-nm-wireguard/plasma-applet-nm-wireguard)
 
-I am not the dev of that project, this is just a mirror repo 
+I am not the dev of that project, this is just a mirror repo to make the tool available for those who don't want to wait a released version by KDE
 
 Addition to plasma-nm to allow the use WireGuard VPN.
 
@@ -12,6 +12,9 @@ This requires installation of [network-manager-wireguard](https://github.com/max
 This is just a mirrored/updated version of project https://phabricator.kde.org/D15093
 
 ## Guide
+
+### Releases
+I am distributing an rpm RHEL based version awaiting the project to be upstreamed and released (Just check the releases page) 
 
 ### Compilation
 - To compile you need to get [plasma-nm](https://github.com/KDE/plasma-nm) and clone this project under the 'vpn' directory in that tree, 
