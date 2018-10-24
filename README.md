@@ -10,8 +10,11 @@ Just be aware that it is definitely still a work in progress.
 This requires installation of [network-manager-wireguard](https://github.com/max-moser/network-manager-wireguard) before this will have any effect.
 
 This is just a mirrored/updated version of project https://phabricator.kde.org/D15093
-
+                       
 ## Guide
+
+### Dev
+All merit to https://github.com/Druco  
 
 ### Releases
 I am distributing an rpm RHEL based version awaiting the project to be upstreamed and released (Just check the releases page) 
