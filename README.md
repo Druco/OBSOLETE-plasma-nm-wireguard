@@ -18,7 +18,10 @@ All merit to https://github.com/Druco
 
 ### Releases
 I am distributing an rpm package, RHEL based version awaiting the project to be upstreamed and released (Just check the releases page) 
-RPM for Mageia/Opensuse/Fedora/Redhat/ROSA/OpenMandriva/PCLinuxOS/CentOS note that i did not test my rpms on all those distro, if it does not work just extract the rpm and copy the needed files manually... you will probably only need plasma-applet-nm-wireguard-5.12.2-1.mga6.x86_64.rpm
+
+RPM for Mageia/Opensuse/Fedora/Redhat/ROSA/OpenMandriva/PCLinuxOS/CentOS 
+
+Note that i did not test my rpms on all those distro, if it does not work just extract the rpm and copy the needed files manually... you will probably only need plasma-applet-nm-wireguard-5.12.2-1.mga6.x86_64.rpm
 
 ### Compilation
 - To compile you need to get [plasma-nm](https://github.com/KDE/plasma-nm) and clone this project under the 'vpn' directory in that tree, 
