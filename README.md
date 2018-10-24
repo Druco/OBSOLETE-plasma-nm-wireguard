@@ -1,4 +1,8 @@
-# KDE Plasma Network Manager Wireguard (plasma-nm-wireguard/plasma-applet-nm-wireguard)
+# KDE Plasma Network Manager Wireguard 
+(plasma-nm-wireguard/plasma-applet-nm-wireguard)
+
+I am not the dev of that project, this is just a mirror repo 
+
 Addition to plasma-nm to allow the use WireGuard VPN.
 
 Just be aware that it is definitely still a work in progress. 
