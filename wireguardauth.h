@@ -1,4 +1,5 @@
 /*
+    Copyright 2018 Bruce Anderson <banderson19com@san.rr.com>
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -32,8 +33,8 @@ class WireGuardAuthWidget : public SettingWidget
     Q_DECLARE_PRIVATE(WireGuardAuthWidget)
 public:
     explicit WireGuardAuthWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
-    ~WireGuardAuthWidget();
-    virtual QVariantMap setting() const;
+    ~WireGuardAuthWidget() override;
+    virtual QVariantMap setting() const override;
 
 private:
     WireGuardAuthWidgetPrivate *const d_ptr;

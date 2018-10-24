@@ -1,4 +1,6 @@
 /*
+    Copyright 2018 Bruce Anderson <banderson19com@san.rr.com>
+
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
     published by the Free Software Foundation; either version 2 of
@@ -28,7 +30,7 @@ public:
     NetworkManager::VpnSetting::Ptr setting;
 };
 
-WireGuardAuthWidget::WireGuardAuthWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
+WireGuardAuthWidget::WireGuardAuthWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent)
     : SettingWidget(setting, parent)
     , d_ptr(new WireGuardAuthWidgetPrivate)
 {
@@ -43,8 +45,6 @@ WireGuardAuthWidget::~WireGuardAuthWidget()
 {
     delete d_ptr;
 }
-
-
 
 QVariantMap WireGuardAuthWidget::setting() const
 {

@@ -1,4 +1,5 @@
 /*
+    Copyright 2018 Bruce Anderson <banderson19com@san.rr.com>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -23,7 +24,6 @@
 #include "passwordfield.h"
 
 #include <QDialog>
-#include <QProcess>
 
 #include <NetworkManagerQt/VpnSetting>
 
@@ -37,31 +37,21 @@ class WireGuardAdvancedWidget : public QDialog
 {
     Q_OBJECT
 
-    enum CertCheckType {
-        DontVerify = 0,
-        VerifyWholeSubjectExactly,
-        VerifyNameExactly,
-        VerifyNameByPrefix,
-        VerifySubjectPartially
-    };
-
 public:
-    explicit WireGuardAdvancedWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
-    ~WireGuardAdvancedWidget();
-
+    explicit WireGuardAdvancedWidget(const NetworkManager::VpnSetting::Ptr &setting
+                                     , QPalette normalPalette
+                                     , QPalette warningPalette
+                                     , QWidget *parent = 0);
+    ~WireGuardAdvancedWidget() override;
     NetworkManager::VpnSetting::Ptr setting() const;
-
-private Q_SLOTS:
 
 private:
     void loadConfig();
-    bool isListenPortValid() const;
-    bool isMTUValid() const;
-    bool isTableValid() const;
-    bool isFwMarkValid() const;
+    void setProperty(NMStringMap &data, const QLatin1String &key, const QString &value) const;
+    void setProperty(NMStringMap &data, const QLatin1String &key, const int value) const;
     bool isPresharedKeyValid() const;
-    void setOrClear(NMStringMap &data, QLatin1String key, QString value) const;
-    Ui::WireGuardAdvancedWidget *m_ui;
+    bool isTableValid() const;
+    void setBackground(QWidget *w, bool result) const;
     class Private;
     Private *const d;
 };

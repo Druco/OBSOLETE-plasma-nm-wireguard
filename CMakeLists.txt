@@ -6,7 +6,7 @@ set(wireguard_SRCS
     wireguardwidget.cpp
     wireguardauth.cpp
     wireguardadvancedwidget.cpp
-    wireguardutils.cpp
+    wireguardkeyvalidator.cpp
 )
 
 ki18n_wrap_ui(wireguard_SRCS wireguard.ui wireguardadvanced.ui wireguardauth.ui)
@@ -28,7 +28,6 @@ target_link_libraries(plasmanetworkmanagement_wireguardui
     KF5::WidgetsAddons
     KF5::KIOWidgets
     KF5::CoreAddons
-    KF5::KDELibs4Support
 )
 
 install(TARGETS plasmanetworkmanagement_wireguardui  DESTINATION ${PLUGIN_INSTALL_DIR})

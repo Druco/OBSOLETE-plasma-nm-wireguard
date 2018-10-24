@@ -1,4 +1,6 @@
 /*
+    Copyright 2018 Bruce Anderson <banderson19com@san.rr.com>
+
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
     published by the Free Software Foundation; either version 2 of
@@ -17,16 +19,12 @@
 */
 
 #include "wireguard.h"
-#include "wireguardutils.h"
 
 #include <QLatin1Char>
-#include <QStringBuilder>
-#include <QFile>
 #include <QFileInfo>
 #include <KPluginFactory>
-#include <KLocalizedString>
-#include <KMessageBox>
-#include <KStandardDirs>
+#include <KConfig>
+#include <KConfigGroup>
 
 #include <NetworkManagerQt/Connection>
 #include <NetworkManagerQt/VpnSetting>
@@ -34,14 +32,16 @@
 
 #include "wireguardwidget.h"
 #include "wireguardauth.h"
-
-#include <arpa/inet.h>
+#include "simpleipv4addressvalidator.h"
+#include "simpleipv6addressvalidator.h"
+#include "simpleiplistvalidator.h"
+#include "wireguardkeyvalidator.h"
 
 #include "nm-wireguard-service.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(WireGuardUiPluginFactory, "plasmanetworkmanagement_wireguardui.json", registerPlugin<WireGuardUiPlugin>();)
 
-#define NMV_WG_TAG_INTERFACE             "[Interface]"
+#define NMV_WG_TAG_INTERFACE             "Interface"
 #define NMV_WG_TAG_PRIVATE_KEY           "PrivateKey"
 #define NMV_WG_TAG_LISTEN_PORT           "ListenPort"
 #define NMV_WG_TAG_ADDRESS               "Address"
@@ -53,16 +53,15 @@ K_PLUGIN_FACTORY_WITH_JSON(WireGuardUiPluginFactory, "plasmanetworkmanagement_wi
 #define NMV_WG_TAG_PRE_DOWN              "PreDown"
 #define NMV_WG_TAG_POST_DOWN             "PostDown"
 #define NMV_WG_TAG_FWMARK                "FwMark"
-#define NMV_WG_ASSIGN                    "="
 
-#define NMV_WG_TAG_PEER                  "[Peer]"
+#define NMV_WG_TAG_PEER                  "Peer"
 #define NMV_WG_TAG_PUBLIC_KEY            "PublicKey"
 #define NMV_WG_TAG_ALLOWED_IPS           "AllowedIPs"
 #define NMV_WG_TAG_ENDPOINT              "Endpoint"
 #define NMV_WG_TAG_PRESHARED_KEY         "PresharedKey"
 
 
-WireGuardUiPlugin::WireGuardUiPlugin(QObject * parent, const QVariantList &) : VpnUiPlugin(parent)
+WireGuardUiPlugin::WireGuardUiPlugin(QObject *parent, const QVariantList &) : VpnUiPlugin(parent)
 {
 }
 
@@ -70,13 +69,12 @@ WireGuardUiPlugin::~WireGuardUiPlugin()
 {
 }
 
-SettingWidget * WireGuardUiPlugin::widget(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
+SettingWidget *WireGuardUiPlugin::widget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent)
 {
-    WireGuardSettingWidget * wid = new WireGuardSettingWidget(setting, parent);
-    return wid;
+    return new WireGuardSettingWidget(setting, parent);
 }
 
-SettingWidget * WireGuardUiPlugin::askUser(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent)
+SettingWidget *WireGuardUiPlugin::askUser(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent)
 {
     return new WireGuardAuthWidget(setting, parent);
 }
@@ -95,10 +93,15 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
 {
     NMVariantMapMap result;
 
-    QFile impFile(fileName);
-    if (!impFile.open(QFile::ReadOnly|QFile::Text)) {
+    const KConfig importFile(fileName, KConfig::NoGlobals);
+    const KConfigGroup interfaceGroup = importFile.group(NMV_WG_TAG_INTERFACE);
+    const KConfigGroup peerGroup = importFile.group(NMV_WG_TAG_PEER);
+
+    // The config file must have both [Interface] and [Peer] sections
+    if (!interfaceGroup.exists()
+        || !peerGroup.exists()) {
         mError = VpnUiPlugin::Error;
-        mErrorMessage = i18n("Could not open file");
+        mErrorMessage = i18n("Config file needs both [Peer] and [Interface]");
         return result;
     }
 
@@ -106,204 +109,142 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
     NMStringMap dataMap;
     QVariantMap ipv4Data;
 
-    QString proxy_type;
-    QString proxy_user;
-    QString proxy_passwd;
-    bool have_address = false;
-    bool have_private_key = false;
-    bool have_public_key = false;
-    bool have_allowed_ips = false;
-    bool have_endpoint = false;
+    QString value;
+    QStringList valueList;
+    int intValue;
 
-    QTextStream in(&impFile);
-    enum {IDLE, INTERFACE_SECTION, PEER_SECTION} current_state = IDLE;
+    // Do the required fields first and fail (i.e. return an empty result) if not present
 
-    while (!in.atEnd()) {
-        QStringList key_value;
-        QString line = in.readLine();
+    // Addresses
+    valueList = interfaceGroup.readEntry(NMV_WG_TAG_ADDRESS, QStringList());
+    if (valueList.isEmpty()) {
+        mError = VpnUiPlugin::Error;
+        mErrorMessage = i18n("No address in config file");
+        return result;
+    }
 
-        // Ignore blank lines
-        if (line.isEmpty()) {
-            continue;
-        }
-        key_value.clear();
-        key_value << line.split(QRegExp("\\s+=\\s*")); // Split on the ' = '
-
-        if (key_value[0] == NMV_WG_TAG_INTERFACE)
-        {
-            if (current_state == IDLE)
-            {
-                current_state = INTERFACE_SECTION;
-                continue;
-            }
-            else
-            {
-                // BAA - ERROR
-                break;
-            }
-        }
-
-        else if (key_value[0] == NMV_WG_TAG_PEER)
-        {
-            // Currently only on PEER section is allowed
-            if (current_state == INTERFACE_SECTION)
-            {
-                current_state = PEER_SECTION;
-                continue;
-            }
-            else
-            {
-                // BAA - ERROR
-                break;
-            }
-        }
-
-        // If we didn't get an '=' sign in the line, it's probably an error but
-        // we're going to treat it as a comment and ignore it
-        if (key_value.length() < 2)
-            continue;
-
-        // If we are in the [Interface] section look for the possible tags
-        if (current_state == INTERFACE_SECTION)
-        {
-            // Address
-            if (key_value[0] == NMV_WG_TAG_ADDRESS)
-            {
-                QStringList address_list;
-                address_list << key_value[1].split(QRegExp("\\s*,\\s*"));
-                for (int i = 0;i < address_list.size(); i++)
-                {
-                    if (WireGuardUtils::is_ip4(address_list[i]))
-                    {
-                        dataMap.insert(QLatin1String(NM_WG_KEY_ADDR_IP4), address_list[i]);
-                        have_address = true;
-                    }
-                    else if (WireGuardUtils::is_ip6(address_list[i]))
-                    {
-                        dataMap.insert(QLatin1String(NM_WG_KEY_ADDR_IP6), address_list[i]);
-                        have_address = true;
-                    }
-                }
-            }
-
-            // Listen Port
-            else if (key_value[0] == NMV_WG_TAG_LISTEN_PORT)
-            {
-                if (WireGuardUtils::is_num_valid(key_value[1], 0, 65535))
-                {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_LISTEN_PORT), key_value[1]);
-                }
-            }
-            // Private Key
-            else if (key_value[0] == NMV_WG_TAG_PRIVATE_KEY)
-            {
-                if (WireGuardUtils::is_key_valid(key_value[1]))
-                {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_PRIVATE_KEY), key_value[1]);
-                    have_private_key = true;
-                }
-            }
-            // DNS
-            else if (key_value[0] == NMV_WG_TAG_DNS)
-            {
-                if (WireGuardUtils::is_ip4(key_value[1]))
-                {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_DNS), key_value[1]);
-                }
-            }
-            // MTU
-            else if (key_value[0] == NMV_WG_TAG_MTU)
-            {
-                if (WireGuardUtils::is_num_valid(key_value[1]))
-                {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_MTU), key_value[1]);
-                }
-            }
-            // Table
-            else if (key_value[0] == NMV_WG_TAG_TABLE)
-            {
-                if (WireGuardUtils::is_num_valid(key_value[1]))
-                {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_TABLE), key_value[1]);
-                }
-            }
-            else if (key_value[0] == NMV_WG_TAG_PRE_UP)
-            {
-                dataMap.insert(QLatin1String(NM_WG_KEY_PRE_UP), key_value[1]);
-            }
-            else if (key_value[0] == NMV_WG_TAG_POST_UP)
-            {
-                dataMap.insert(QLatin1String(NM_WG_KEY_POST_UP), key_value[1]);
-            }
-            else if (key_value[0] == NMV_WG_TAG_PRE_DOWN)
-            {
-                dataMap.insert(QLatin1String(NM_WG_KEY_PRE_DOWN), key_value[1]);
-            }
-            else if (key_value[0] == NMV_WG_TAG_POST_DOWN)
-            {
-                dataMap.insert(QLatin1String(NM_WG_KEY_POST_DOWN), key_value[1]);
-            }
-            else
-            {
-                // We got a wrong field in the Interface section so it
-                // is an error
-                mError = VpnUiPlugin::Error;
-                mErrorMessage = i18n("Invalid key %1 in [Interface] section", key_value[0]);
-                break;
-            }
-        }
-        else if (current_state == PEER_SECTION)
-        {
-            // Public Key
-            if (key_value[0] == NMV_WG_TAG_PUBLIC_KEY)
-            {
-                if (WireGuardUtils::is_key_valid(key_value[1]))
-                {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_PUBLIC_KEY), key_value[1]);
-                    have_public_key = true;
-                }
-            }
-            // Allowed IPs
-            else if (key_value[0] == NMV_WG_TAG_ALLOWED_IPS)
-            {
-                if (key_value[1].length() > 0)
-                {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_ALLOWED_IPS), key_value[1]);
-                    have_allowed_ips = true;
-                }
-            }
-            // Endpoint
-            else if (key_value[0] == NMV_WG_TAG_ENDPOINT)
-            {
-                if (key_value[1].length() > 0)
-                {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_ENDPOINT), key_value[1]);
-                    have_endpoint = true;
-                }
-            }
-            // Preshared Key
-            else if (key_value[0] == NMV_WG_TAG_PRESHARED_KEY)
-            {
-                if (WireGuardUtils::is_key_valid(key_value[1]))
-                {
-                    dataMap.insert(QLatin1String(NM_WG_KEY_PRESHARED_KEY), key_value[1]);
-                }
-            }
-        }
-        else   // We're in IDLE or unknown state so it's an error
-        {
-            // TODO - add error handling
+    for (const QString &address :valueList) {
+        const QPair<QHostAddress, int> addressIn = QHostAddress::parseSubnet(address.trimmed());
+        if (addressIn.first.protocol() == QAbstractSocket::NetworkLayerProtocol::IPv4Protocol) {
+            dataMap.insert(QLatin1String(NM_WG_KEY_ADDR_IP4), address);
+        } else if (addressIn.first.protocol() == QAbstractSocket::NetworkLayerProtocol::IPv6Protocol) {
+            dataMap.insert(QLatin1String(NM_WG_KEY_ADDR_IP6), address);
+        } else { // Error condition
             mError = VpnUiPlugin::Error;
-            mErrorMessage = i18n("Unknown state in import file");
-            break;
+            mErrorMessage = i18n("No valid address in config file");
+            return result;
         }
     }
-    if (!have_address || !have_private_key || !have_public_key || !have_endpoint || !have_allowed_ips)
-    {
 
+    WireGuardKeyValidator keyValidator(nullptr);
+    int pos = 0;
+
+    // Private Key
+    value = interfaceGroup.readEntry(NMV_WG_TAG_PRIVATE_KEY);
+    if (!value.isEmpty()) {
+        if (keyValidator.validate(value, pos) == QValidator::State::Acceptable) {
+            dataMap.insert(QLatin1String(NM_WG_KEY_PRIVATE_KEY), value);
+        } else {
+            mError = VpnUiPlugin::Error;
+            mErrorMessage = i18n("No valid Private Key in config file");
+            return result;
+        }
+    } else {
         mError = VpnUiPlugin::Error;
-        mErrorMessage = i18n("File %1 is not a valid WireGuard configuration.", fileName);
+        mErrorMessage = i18n("No Private Key in config file");
         return result;
+    }
+
+    // Public Key
+    value = peerGroup.readEntry(NMV_WG_TAG_PUBLIC_KEY);
+    if (!value.isEmpty()) {
+        if (keyValidator.validate(value, pos) == QValidator::State::Acceptable) {
+            dataMap.insert(QLatin1String(NM_WG_KEY_PUBLIC_KEY), value);
+        } else {
+            mError = VpnUiPlugin::Error;
+            mErrorMessage = i18n("No valid Public Key in config file");
+            return result;
+        }
+    } else {
+        mError = VpnUiPlugin::Error;
+        mErrorMessage = i18n("No Public Key in config file");
+        return result;
+    }
+
+    // Allowed IPs
+    value = peerGroup.readEntry(NMV_WG_TAG_ALLOWED_IPS);
+    if (!value.isEmpty()) {
+        SimpleIpListValidator validator(this,
+                                        SimpleIpListValidator::WithCidr,
+                                        SimpleIpListValidator::Both);
+
+        if (validator.validate(value, pos) != QValidator::State::Invalid) {
+            dataMap.insert(QLatin1String(NM_WG_KEY_ALLOWED_IPS), value);
+        } else {
+            mError = VpnUiPlugin::Error;
+            mErrorMessage = i18n("Invalid Allowed IP in config file");
+            return result;
+        }
+    } else {
+        mError = VpnUiPlugin::Error;
+        mErrorMessage = i18n("No Allowed IPs in config file");
+        return result;
+    }
+
+    // Now the optional ones
+
+    // Listen Port
+    intValue = interfaceGroup.readEntry(NMV_WG_TAG_LISTEN_PORT, 0);
+    if (intValue > 0) {
+        if (intValue < 65536) {
+            dataMap.insert(QLatin1String(NM_WG_KEY_LISTEN_PORT), QString::number(intValue));
+        } else {
+            mError = VpnUiPlugin::Error;
+            mErrorMessage = i18n("Invalid Listen Port in config file");
+            return result;
+        }
+    }
+
+    // DNS
+    value = interfaceGroup.readEntry(NMV_WG_TAG_DNS);
+    if (!value.isEmpty()) {
+        const QHostAddress testAddress(value);
+        if (testAddress.protocol() == QAbstractSocket::NetworkLayerProtocol::IPv4Protocol
+            || testAddress.protocol() == QAbstractSocket::NetworkLayerProtocol::IPv6Protocol) {
+            dataMap.insert(QLatin1String(NM_WG_KEY_DNS), value);
+        } else {
+            mError = VpnUiPlugin::Error;
+            mErrorMessage = i18n("Invalid DNS in config file");
+            return result;
+        }
+    }
+
+    // MTU
+    intValue = interfaceGroup.readEntry(NMV_WG_TAG_MTU, 0);
+    if (intValue > 0)
+        dataMap.insert(QLatin1String(NM_WG_KEY_LISTEN_PORT), QString::number(intValue));
+
+    // Table
+    value = interfaceGroup.readEntry(NMV_WG_TAG_TABLE);
+    if (!value.isEmpty()) {
+        dataMap.insert(QLatin1String(NM_WG_KEY_TABLE), value);
+    }
+
+    // Endpoint
+    value = peerGroup.readEntry(NMV_WG_TAG_ENDPOINT);
+    if (!value.isEmpty())
+        dataMap.insert(QLatin1String(NM_WG_KEY_ENDPOINT), value);
+
+    // Preshared Key
+    value = peerGroup.readEntry(NMV_WG_TAG_PRESHARED_KEY);
+    if (!value.isEmpty()) {
+        if (keyValidator.validate(value, pos) == QValidator::State::Acceptable) {
+            dataMap.insert(QLatin1String(NM_WG_KEY_PRESHARED_KEY), value);
+        } else {
+            mError = VpnUiPlugin::Error;
+            mErrorMessage = i18n("Invalid Preshared Key in config file");
+            return result;
+        }
     }
 
     NetworkManager::VpnSetting setting;
@@ -316,161 +257,73 @@ NMVariantMapMap WireGuardUiPlugin::importConnectionSettings(const QString &fileN
     result.insert("connection", conn);
     result.insert("vpn", setting.toMap());
 
-    impFile.close();
     return result;
 }
 
 bool WireGuardUiPlugin::exportConnectionSettings(const NetworkManager::ConnectionSettings::Ptr &connection, const QString &fileName)
 {
-    QFile expFile(fileName);
-    if (! expFile.open(QIODevice::WriteOnly | QIODevice::Text) ) {
-        mError = VpnUiPlugin::Error;
-        mErrorMessage = i18n("Could not open file for writing");
-        return false;
-    }
-
-    NMStringMap dataMap;
-
     NetworkManager::VpnSetting::Ptr vpnSetting = connection->setting(NetworkManager::Setting::Vpn).dynamicCast<NetworkManager::VpnSetting>();
-    dataMap = vpnSetting->data();
+    NMStringMap dataMap = vpnSetting->data();
 
-    QString line;
+    // Make sure all the required fields are present
+    if (!(dataMap.contains(QLatin1String(NM_WG_KEY_ADDR_IP4))
+          || dataMap.contains(QLatin1String(NM_WG_KEY_ADDR_IP6)))
+        || !dataMap.contains(QLatin1String(NM_WG_KEY_PRIVATE_KEY))
+        || !dataMap.contains(QLatin1String(NM_WG_KEY_PUBLIC_KEY))
+        || !dataMap.contains(QLatin1String(NM_WG_KEY_ALLOWED_IPS)))
+        return false;
 
-    line = QString(NMV_WG_TAG_INTERFACE) + '\n';
-    expFile.write(line.toLatin1());
+    // Open the output file
+    KConfig exportFile(fileName, KConfig::NoGlobals);
+    KConfigGroup interfaceGroup = exportFile.group(NMV_WG_TAG_INTERFACE);
+    KConfigGroup peerGroup = exportFile.group(NMV_WG_TAG_PEER);
 
-    // Handle IPv4 and IPv6 addresses. if neither is present it is an error
-    line = QString("%1 = ").arg(NMV_WG_TAG_ADDRESS);
+    QStringList outputList;
 
     if (dataMap.contains(QLatin1String(NM_WG_KEY_ADDR_IP4)))
-    {
-        line += dataMap[NM_WG_KEY_ADDR_IP4];
-        if (dataMap.contains(QLatin1String(NM_WG_KEY_ADDR_IP6)))
-        {
-            line += "," + dataMap[NM_WG_KEY_ADDR_IP6];
-        }
-    }
-    else if (dataMap.contains(QLatin1String(NM_WG_KEY_ADDR_IP4)))
-    {
-        line += dataMap[NM_WG_KEY_ADDR_IP4];
-    }
-    else
-    {
-        return false;
-    }
-    line += "\n";
-    expFile.write(line.toLatin1());
+        outputList.append(dataMap[NM_WG_KEY_ADDR_IP4]);
+    if (dataMap.contains(QLatin1String(NM_WG_KEY_ADDR_IP6)))
+        outputList.append(dataMap[NM_WG_KEY_ADDR_IP6]);
+    interfaceGroup.writeEntry(NMV_WG_TAG_ADDRESS, outputList);
 
     // Do Private Key
-    if (dataMap.contains(QLatin1String(NM_WG_KEY_PRIVATE_KEY)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_PRIVATE_KEY, dataMap[NM_WG_KEY_PRIVATE_KEY]);
-    }
-    else
-    {
-        return false;
-    }
-    expFile.write(line.toLatin1());
-        
-    // Do DNS (Not required so no error if not present)
+    interfaceGroup.writeEntry(NMV_WG_TAG_PRIVATE_KEY, dataMap[NM_WG_KEY_PRIVATE_KEY]);
+
+    // Do DNS (Not required)
     if (dataMap.contains(QLatin1String(NM_WG_KEY_DNS)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_DNS, dataMap[NM_WG_KEY_DNS]);
-        expFile.write(line.toLatin1());
-    }
+        interfaceGroup.writeEntry(NMV_WG_TAG_DNS, dataMap[NM_WG_KEY_DNS]);
 
-    // Do MTU (Not required so no error if not present)
+    // Do MTU (Not required)
     if (dataMap.contains(QLatin1String(NM_WG_KEY_MTU)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_MTU, dataMap[NM_WG_KEY_MTU]);
-        expFile.write(line.toLatin1());
-    }
+        interfaceGroup.writeEntry(NMV_WG_TAG_MTU, dataMap[NM_WG_KEY_MTU]);
 
-    // Do Table number (Not required so no error if not present)
+    // Do Table number (Not required)
     if (dataMap.contains(QLatin1String(NM_WG_KEY_TABLE)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_TABLE, dataMap[NM_WG_KEY_TABLE]);
-        expFile.write(line.toLatin1());
-    }
+        interfaceGroup.writeEntry(NMV_WG_TAG_TABLE, dataMap[NM_WG_KEY_TABLE]);
 
     // Do Listen Port (Not required)
     if (dataMap.contains(QLatin1String(NM_WG_KEY_LISTEN_PORT)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_LISTEN_PORT, dataMap[NM_WG_KEY_LISTEN_PORT]);
-        expFile.write(line.toLatin1());
-    }
-        
+        interfaceGroup.writeEntry(NMV_WG_TAG_LISTEN_PORT, dataMap[NM_WG_KEY_LISTEN_PORT]);
+
     // Do FwMark (Not required)
     if (dataMap.contains(QLatin1String(NM_WG_KEY_FWMARK)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_FWMARK, dataMap[NM_WG_KEY_FWMARK]);
-        expFile.write(line.toLatin1());
-    }
-        
-    // Do the Pre, Post, Up, Down scripte (Not required so no error if not present)
-    if (dataMap.contains(QLatin1String(NM_WG_KEY_PRE_UP)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_PRE_UP, dataMap[NM_WG_KEY_PRE_UP]);
-        expFile.write(line.toLatin1());
-    }
-    if (dataMap.contains(QLatin1String(NM_WG_KEY_POST_UP)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_POST_UP, dataMap[NM_WG_KEY_POST_UP]);
-        expFile.write(line.toLatin1());
-    }
-    if (dataMap.contains(QLatin1String(NM_WG_KEY_PRE_DOWN)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_PRE_DOWN, dataMap[NM_WG_KEY_PRE_DOWN]);
-        expFile.write(line.toLatin1());
-    }
-    if (dataMap.contains(QLatin1String(NM_WG_KEY_POST_DOWN)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_POST_DOWN, dataMap[NM_WG_KEY_POST_DOWN]);
-        expFile.write(line.toLatin1());
-    }
-
-    // Throw in the "Peer" section header
-    line = "\n" + QString(NMV_WG_TAG_PEER) + '\n';
-    expFile.write(line.toLatin1());
+        interfaceGroup.writeEntry(NMV_WG_TAG_FWMARK, dataMap[NM_WG_KEY_FWMARK]);
 
     // Do Pupblic key (required)
-    if (dataMap.contains(QLatin1String(NM_WG_KEY_PUBLIC_KEY)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_PUBLIC_KEY, dataMap[NM_WG_KEY_PUBLIC_KEY]);
-    }
-    else
-    {
-        return false;
-    }
-    expFile.write(line.toLatin1());
-    
+    peerGroup.writeEntry(NMV_WG_TAG_PUBLIC_KEY, dataMap[NM_WG_KEY_PUBLIC_KEY]);
+
     // Do Allowed IP list (Required)
-    if (dataMap.contains(QLatin1String(NM_WG_KEY_ALLOWED_IPS)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_ALLOWED_IPS, dataMap[NM_WG_KEY_ALLOWED_IPS]);
-    }
-    else
-    {
-        return false;
-    }
-    expFile.write(line.toLatin1());
+    peerGroup.writeEntry(NMV_WG_TAG_ALLOWED_IPS, dataMap[NM_WG_KEY_ALLOWED_IPS]);
 
-
-    // Do Endpoint (Not required so no error if not present)
+    // Do Endpoint (Not required)
     if (dataMap.contains(QLatin1String(NM_WG_KEY_ENDPOINT)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_ENDPOINT, dataMap[NM_WG_KEY_ENDPOINT]);
-        expFile.write(line.toLatin1());
-    }
+        peerGroup.writeEntry(NMV_WG_TAG_ENDPOINT, dataMap[NM_WG_KEY_ENDPOINT]);
 
-    // Do Preshared Key (Not required so no error if not present)
+    // Do Preshared Key (Not required)
     if (dataMap.contains(QLatin1String(NM_WG_KEY_PRESHARED_KEY)))
-    {
-        line =  QString("%1 = %2\n").arg(NMV_WG_TAG_PRESHARED_KEY, dataMap[NM_WG_KEY_PRESHARED_KEY]);
-        expFile.write(line.toLatin1());
-    }
+        peerGroup.writeEntry(NMV_WG_TAG_PRESHARED_KEY, dataMap[NM_WG_KEY_PRESHARED_KEY]);
 
-    expFile.close();
+    exportFile.sync();
     return true;
 }
 

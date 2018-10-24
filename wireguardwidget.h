@@ -1,4 +1,5 @@
 /*
+    Copyright 2018 Bruce Anderson <banderson19com@san.rr.com>
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -21,29 +22,24 @@
 #define WIREGUARDWIDGET_H
 
 #include "settingwidget.h"
-
-#include <QProcess>
-
 #include "ui_wireguard.h"
 
 #include <NetworkManagerQt/VpnSetting>
-
-class QUrl;
-class QLineEdit;
 
 class WireGuardSettingWidget : public SettingWidget
 {
     Q_OBJECT
 public:
-    explicit WireGuardSettingWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = 0);
-    ~WireGuardSettingWidget();
+    explicit WireGuardSettingWidget(const NetworkManager::VpnSetting::Ptr &setting,
+                                    QWidget *parent = 0);
+    ~WireGuardSettingWidget() override;
 
-    void loadConfig(const NetworkManager::Setting::Ptr &setting) Q_DECL_OVERRIDE;
-    void loadSecrets(const NetworkManager::Setting::Ptr &setting) Q_DECL_OVERRIDE;
+    void loadConfig(const NetworkManager::Setting::Ptr &setting) override;
+    void loadSecrets(const NetworkManager::Setting::Ptr &setting) override;
 
-    QVariantMap setting() const;
+    QVariantMap setting() const override;
 
-    virtual bool isValid() const;
+    virtual bool isValid() const override;
 
 private Q_SLOTS:
     void showAdvanced();
@@ -51,14 +47,14 @@ private Q_SLOTS:
 private:
     class Private;
     Private *d;
+    void setProperty(NMStringMap &data, const QLatin1String &key, const QString &value) const;
+    void setBackground(QWidget *w, bool result) const;
     bool isAddressValid() const;
     bool isPrivateKeyValid() const;
-    bool isDNSValid() const;
     bool isPublicKeyValid() const;
-    bool isAllowedIPsValid() const;
+    bool isDnsValid() const;
+    bool isAllowedIpsValid() const;
     bool isEndpointValid() const;
-    void setOrClear(NMStringMap &data, QLatin1String key, QString value) const;
-
 };
 
 #endif // WIREGUARDWIDGET_H

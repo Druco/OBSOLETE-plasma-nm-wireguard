@@ -1,4 +1,5 @@
 /*
+    Copyright 2018 Bruce Anderson <banderson19com@san.rr.com>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -21,161 +22,159 @@
 #include "ui_wireguardadvanced.h"
 #include "nm-wireguard-service.h"
 #include "settingwidget.h"
-#include "wireguardutils.h"
-
-#include <QStandardPaths>
-#include <QUrl>
-#include <QComboBox>
-
-#include <KLocalizedString>
-#include <KProcess>
-#include <KAcceleratorManager>
+#include "wireguardkeyvalidator.h"
 
 class WireGuardAdvancedWidget::Private {
 public:
     NetworkManager::VpnSetting::Ptr setting;
+    Ui::WireGuardAdvancedWidget ui;
+    QPalette warningPalette;
+    QPalette normalPalette;
+    WireGuardKeyValidator *keyValidator;
+    QIntValidator *listenPortValidator;
+    QIntValidator *mtuValidator;
+    QIntValidator *fwMarkValidator;
+    QRegularExpressionValidator *tableValidator;
 };
 
-WireGuardAdvancedWidget::WireGuardAdvancedWidget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent)
+WireGuardAdvancedWidget::WireGuardAdvancedWidget(const NetworkManager::VpnSetting::Ptr &setting
+                                                 , QPalette normalPalette
+                                                 , QPalette warningPalette
+                                                 , QWidget *parent)
     : QDialog(parent)
-    , m_ui(new Ui::WireGuardAdvancedWidget)
     , d(new Private)
 {
-    m_ui->setupUi(this);
+    d->normalPalette = normalPalette;
+    d->warningPalette = warningPalette;
+    d->keyValidator = new WireGuardKeyValidator(this);
+    d->ui.setupUi(this);
 
     setWindowTitle(i18nc("@title: window advanced wireguard properties", "Advanced WireGuard properties"));
 
     d->setting = setting;
 
-    connect(m_ui->listenPortLineEdit, &QLineEdit::textChanged, this, &WireGuardAdvancedWidget::isListenPortValid);
-    connect(m_ui->mTULineEdit, &QLineEdit::textChanged, this, &WireGuardAdvancedWidget::isMTUValid);
-    connect(m_ui->tableLineEdit, &QLineEdit::textChanged, this, &WireGuardAdvancedWidget::isTableValid);
-    connect(m_ui->fwMarkLineEdit, &QLineEdit::textChanged, this, &WireGuardAdvancedWidget::isFwMarkValid);
-    connect(m_ui->presharedKeyLineEdit, &PasswordField::textChanged, this, &WireGuardAdvancedWidget::isPresharedKeyValid);
+    connect(d->ui.buttonBox, &QDialogButtonBox::accepted, this, &WireGuardAdvancedWidget::accept);
+    connect(d->ui.buttonBox, &QDialogButtonBox::rejected, this, &WireGuardAdvancedWidget::reject);
+    connect(d->ui.presharedKeyLineEdit
+            , &PasswordField::textChanged
+            , this
+            , &WireGuardAdvancedWidget::isPresharedKeyValid);
+    connect(d->ui.tableLineEdit
+            , &QLineEdit::textChanged
+            , this
+            , &WireGuardAdvancedWidget::isTableValid);
+    d->ui.presharedKeyLineEdit->setPasswordModeEnabled(true);
 
-    connect(m_ui->buttonBox, &QDialogButtonBox::accepted, this, &WireGuardAdvancedWidget::accept);
-    connect(m_ui->buttonBox, &QDialogButtonBox::rejected, this, &WireGuardAdvancedWidget::reject);
+    d->listenPortValidator = new QIntValidator(0, 65535, nullptr);
+    d->ui.listenPortLineEdit->setValidator(d->listenPortValidator);
 
-    m_ui->presharedKeyLineEdit->setPasswordModeEnabled(true);
+    d->mtuValidator = new QIntValidator(nullptr);
+    d->mtuValidator->setBottom(0);
+    d->ui.mtuLineEdit->setValidator(d->mtuValidator);
+
+    d->fwMarkValidator = new QIntValidator(nullptr);
+    d->fwMarkValidator->setBottom(0);
+    d->ui.fwMarkLineEdit->setValidator(d->fwMarkValidator);
+
+    d->tableValidator = new QRegularExpressionValidator(QRegularExpression("(off)|(auto)|([0-9]*)"));
+    d->ui.tableLineEdit->setValidator(d->tableValidator);
 
     KAcceleratorManager::manage(this);
 
     if (d->setting) {
         loadConfig();
     }
+    isPresharedKeyValid();
 }
 
 WireGuardAdvancedWidget::~WireGuardAdvancedWidget()
 {
+    delete d->keyValidator;
+    delete d->listenPortValidator;
+    delete d->mtuValidator;
+    delete d->fwMarkValidator;
+    delete d->tableValidator;
     delete d;
-}
-
-bool WireGuardAdvancedWidget::isListenPortValid() const
-{
-    bool valid = WireGuardUtils::is_num_valid(m_ui->listenPortLineEdit->displayText(), 0,65535);
-    bool present = (0 != m_ui->listenPortLineEdit->displayText().length());
-    bool result = valid || !present;
-
-    if (!result)
-    {
-        m_ui->listenPortLineEdit->setStyleSheet("* { background-color: rgb(255,128, 128) }");
-    }
-    else
-    {
-        m_ui->listenPortLineEdit->setStyleSheet("* { background-color:  }");
-    }
-    
-    return result;
-}
-
-bool WireGuardAdvancedWidget::isMTUValid() const
-{
-    bool valid = WireGuardUtils::is_num_valid(m_ui->mTULineEdit->displayText());
-    bool present = (0 != m_ui->mTULineEdit->displayText().length());
-    bool result = valid || !present;
-
-    if (!result)
-    {
-        m_ui->mTULineEdit->setStyleSheet("* { background-color: rgb(255,128, 128) }");
-    }
-    else
-    {
-        m_ui->mTULineEdit->setStyleSheet("* { background-color:  }");
-    }
-    
-    return result;
-}
-
-bool WireGuardAdvancedWidget::isTableValid() const
-{
-    return true;
-}
-
-bool WireGuardAdvancedWidget::isFwMarkValid() const
-{
-    return true;
-}
-
-bool WireGuardAdvancedWidget::isPresharedKeyValid() const
-{
-    // The preshared key is not required so it is valid if not present
-    bool valid = (0 == m_ui->presharedKeyLineEdit->text().length() ||
-                  WireGuardUtils::is_key_valid(m_ui->presharedKeyLineEdit->text()));
-
-    if (!valid)
-    {
-        m_ui->presharedKeyLineEdit->setStyleSheet("* { background-color: rgb(255,128, 128) }");
-    }
-    else
-    {
-        m_ui->presharedKeyLineEdit->setStyleSheet("* { background-color:  }");
-    }
-    return valid;
 }
 
 void WireGuardAdvancedWidget::loadConfig()
 {
     const NMStringMap dataMap = d->setting->data();
 
-    m_ui->listenPortLineEdit->setText(dataMap[NM_WG_KEY_LISTEN_PORT]);
-    m_ui->mTULineEdit->setText(dataMap[NM_WG_KEY_MTU]);
-    m_ui->tableLineEdit->setText(dataMap[NM_WG_KEY_TABLE]);
-    m_ui->fwMarkLineEdit->setText(dataMap[NM_WG_KEY_FWMARK]);
-    m_ui->presharedKeyLineEdit->setText(dataMap[NM_WG_KEY_PRESHARED_KEY]);
-    m_ui->preUpScriptLineEdit->setText(dataMap[NM_WG_KEY_PRE_UP]);
-    m_ui->postUpScriptLineEdit->setText(dataMap[NM_WG_KEY_POST_UP]);
-    m_ui->preDownScriptLineEdit->setText(dataMap[NM_WG_KEY_PRE_DOWN]);
-    m_ui->postDownScriptLineEdit->setText(dataMap[NM_WG_KEY_POST_DOWN]);
+    if (dataMap.contains(QLatin1String(NM_WG_KEY_LISTEN_PORT)))
+        d->ui.listenPortLineEdit->setText(dataMap[NM_WG_KEY_LISTEN_PORT]);
+    else
+        d->ui.listenPortLineEdit->clear();
 
+    if (dataMap.contains(QLatin1String(NM_WG_KEY_MTU)))
+        d->ui.mtuLineEdit->setText(dataMap[NM_WG_KEY_MTU]);
+    else
+        d->ui.mtuLineEdit->clear();
+
+    if (dataMap.contains(QLatin1String(NM_WG_KEY_TABLE)))
+        d->ui.tableLineEdit->setText(dataMap[NM_WG_KEY_TABLE]);
+    else
+        d->ui.tableLineEdit->clear();
+
+    if (dataMap.contains(QLatin1String(NM_WG_KEY_FWMARK)))
+        d->ui.fwMarkLineEdit->setText(dataMap[NM_WG_KEY_FWMARK]);
+    else
+        d->ui.fwMarkLineEdit->clear();
+
+    if (dataMap.contains(QLatin1String(NM_WG_KEY_PRESHARED_KEY)))
+        d->ui.presharedKeyLineEdit->setText(dataMap[NM_WG_KEY_PRESHARED_KEY]);
+    else
+        d->ui.presharedKeyLineEdit->setText(QString());
 }
 
-void WireGuardAdvancedWidget::setOrClear(NMStringMap &data, QLatin1String key, QString value) const
+void WireGuardAdvancedWidget::setProperty(NMStringMap &data, const QLatin1String &key, const QString &value) const
 {
-    if (0 != value.length())
-    {
+    if (!value.isEmpty())
         data.insert(key, value);
-    }
-    else
-    {
-        data.remove(key);
-    }
 }
 
 NetworkManager::VpnSetting::Ptr WireGuardAdvancedWidget::setting() const
 {
     NMStringMap data;
+    QString stringVal;
 
-    setOrClear(data, QLatin1String(NM_WG_KEY_LISTEN_PORT), m_ui->listenPortLineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_MTU), m_ui->mTULineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_TABLE), m_ui->tableLineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_FWMARK), m_ui->fwMarkLineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_PRESHARED_KEY), m_ui->presharedKeyLineEdit->text());
-    setOrClear(data, QLatin1String(NM_WG_KEY_PRE_UP), m_ui->preUpScriptLineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_POST_UP), m_ui->postUpScriptLineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_PRE_DOWN), m_ui->preDownScriptLineEdit->displayText());
-    setOrClear(data, QLatin1String(NM_WG_KEY_POST_DOWN), m_ui->postDownScriptLineEdit->displayText());
+    setProperty(data, QLatin1String(NM_WG_KEY_LISTEN_PORT), d->ui.listenPortLineEdit->displayText());
+    setProperty(data, QLatin1String(NM_WG_KEY_MTU), d->ui.mtuLineEdit->displayText());
+    setProperty(data, QLatin1String(NM_WG_KEY_TABLE), d->ui.tableLineEdit->displayText());
+    setProperty(data, QLatin1String(NM_WG_KEY_FWMARK), d->ui.fwMarkLineEdit->displayText());
+    setProperty(data, QLatin1String(NM_WG_KEY_PRESHARED_KEY), d->ui.presharedKeyLineEdit->text());
 
     d->setting->setData(data);
 
     return d->setting;
+}
+
+bool WireGuardAdvancedWidget::isPresharedKeyValid() const
+{
+    int pos = 0;
+    PasswordField *widget = d->ui.presharedKeyLineEdit;
+    QString value = widget->text();
+    bool result = QValidator::Acceptable == d->keyValidator->validate(value, pos)
+        || value.isEmpty();
+    setBackground(widget, result);
+    return result;
+}
+
+bool WireGuardAdvancedWidget::isTableValid() const
+{
+    int pos = 0;
+    QLineEdit *widget = d->ui.tableLineEdit;
+    QString value = widget->displayText();
+    bool result = QValidator::Acceptable == widget->validator()->validate(value, pos)
+        || value.isEmpty();
+    setBackground(widget, result);
+    return result;
+}
+
+void WireGuardAdvancedWidget::setBackground(QWidget *w, bool result) const
+{
+    if (result)
+        w->setPalette(d->normalPalette);
+    else
+        w->setPalette(d->warningPalette);
 }

@@ -1,4 +1,5 @@
 /*
+    Copyright 2018 Bruce Anderson <banderson19com@san.rr.com>
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU General Public License as
@@ -22,22 +23,19 @@
 
 #include "vpnuiplugin.h"
 
-#include <QVariant>
-#include <QTextStream>
-
 class Q_DECL_EXPORT WireGuardUiPlugin : public VpnUiPlugin
 {
 Q_OBJECT
 public:
-    explicit WireGuardUiPlugin(QObject * parent = 0, const QVariantList& = QVariantList());
-    virtual ~WireGuardUiPlugin();
-    SettingWidget * widget(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent = 0);
-    SettingWidget * askUser(const NetworkManager::VpnSetting::Ptr &setting, QWidget * parent = 0);
+    explicit WireGuardUiPlugin(QObject *parent = nullptr, const QVariantList& = QVariantList());
+    ~WireGuardUiPlugin() override;
+    SettingWidget *widget(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = nullptr) override;
+    SettingWidget *askUser(const NetworkManager::VpnSetting::Ptr &setting, QWidget *parent = nullptr) override;
 
-    QString suggestedFileName(const NetworkManager::ConnectionSettings::Ptr &connection) const;
-    QString supportedFileExtensions() const;
-    NMVariantMapMap importConnectionSettings(const QString &fileName);
-    bool exportConnectionSettings(const NetworkManager::ConnectionSettings::Ptr &connection, const QString &fileName);
+    QString suggestedFileName(const NetworkManager::ConnectionSettings::Ptr &connection) const override;
+    QString supportedFileExtensions() const override;
+    NMVariantMapMap importConnectionSettings(const QString &fileName) override;
+    bool exportConnectionSettings(const NetworkManager::ConnectionSettings::Ptr &connection, const QString &fileName) override;
 };
 
 #endif //  PLASMANM_WIREGUARD_H
